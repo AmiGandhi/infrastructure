@@ -19,7 +19,7 @@ Variables should be declared for following properties. Values are provided as co
     3. Subnets CIDR block
     4. VPC name
 
-### Infrastructure as Code with AWS CloudFormation:
+### Infrastructure as a Code with AWS CloudFormation:
 1. Install and setup AWS command line interface
 2. Create CloudFormation template networking.json or networking.yaml that can be used to setup required networking resources
 
