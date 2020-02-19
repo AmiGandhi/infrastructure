@@ -94,7 +94,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select
-        - 3
+        - 2
         - !GetAZs
           Ref: AWS::Region
       CidrBlock: !Ref PublicSubnet3CIDR
@@ -137,27 +137,18 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet1
-    Tags:
-        - Key: Name
-          Value: !Ref PBSN1NAME
 
   PublicSubnet2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet2
-    Tags:
-        - Key: Name
-          Value: !Ref PBSN2NAME
 
   PublicSubnet3RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet3
-    Tags:
-        - Key: Name
-          Value: !Ref PBSN3NAME
 
 
 Outputs:
