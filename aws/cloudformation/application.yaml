@@ -3,19 +3,19 @@ Description: "Set up application resources - CSYE 6225 Spring 2020"
 
 Parameters:
 
-  BUCKETNAME:
+  BucketName:
       Description: Bucket Name
       Type: String
 
-  BUCKETNAMEFORWEBAPP:
+  BucketNameForWebapp:
       Description: Bucket name for storing attachments
       Type: String
   
-  POLICYNAME:
+  PolicyName:
       Description: Policy name
       Type: String
 
-  ROLENAME:
+  RoleName:
       Description: Role name
       Type: String
 
@@ -113,7 +113,7 @@ Resources:
   WebAppEC2S3Policy:
     Type: 'AWS::IAM::Policy'
     Properties:
-      PolicyName: !Join ['', [!Ref "AWS::Region", !Ref POLICYNAME]]
+      PolicyName: !Join ['', [!Ref "AWS::Region", !Ref PolicyName]]
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -121,14 +121,14 @@ Resources:
             Action:
               - 's3:Get*'
               - 's3:List*'
-            Resource: !Join ['', [!Ref "arn:aws:s3", !Ref BUCKETNAME, "/*" ]]
+            Resource: !Join ['', [!Ref "arn:aws:s3", !Ref BucketName, "/*" ]]
           - Effect: Allow
             Action:
               - 's3:Get*'
               - 's3:List*'
               - 's3:Delete*'
               - 's3:Put*'
-            Resource: !Join ['', [!Ref "arn:aws:s3", !Ref BUCKETNAMEFORWEBAPP, "/*" ]]
+            Resource: !Join ['', [!Ref "arn:aws:s3", !Ref BucketNameForWebapp, "/*" ]]
       # # Add a new IAM managed policy to an existing IAM role
       # Roles: 
       #   - !Ref ROLENAME
@@ -136,7 +136,7 @@ Resources:
   WebAppEC2S3Role:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: !Join ['', [!Ref "AWS::Region", !Ref ROLENAME]]
+      RoleName: !Join ['', [!Ref "AWS::Region", !Ref RoleName]]
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
