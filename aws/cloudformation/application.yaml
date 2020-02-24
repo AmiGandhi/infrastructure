@@ -1,0 +1,177 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Set up application resources - CSYE 6225 Spring 2020"
+
+Parameters:
+
+  BUCKETNAME:
+      Description: Bucket Name
+      Type: String
+
+  BUCKETNAMEFORWEBAPP:
+      Description: Bucket name for storing attachments
+      Type: String
+  
+  POLICYNAME:
+      Description: Policy name
+      Type: String
+
+  ROLENAME:
+      Description: Role name
+      Type: String
+
+  DBInstanceID:
+    Description: My database instance
+    Type: String
+    MinLength: '1'
+    MaxLength: '63'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: Must begin with a letter and must not end with a hyphen or contain two consecutive hyphens
+
+  DBName:
+    Description: My database
+    Type: String
+    MinLength: '1'
+    MaxLength: '64'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: Must begin with a letter and contain only alphanumeric characters.
+  
+  DBInstanceClass:
+    Description: DB instance class
+    Type: String
+    ConstraintDescription: Must select a valid DB instance type.
+  
+  DBAllocatedStorage:
+    Default: '50'
+    Description: The size of the database (GiB)
+    Type: Number
+    MinValue: '5'
+    MaxValue: '1024'
+    ConstraintDescription: must be between 20 and 65536 GiB.
+  
+  DBUsername:
+    NoEcho: 'true'
+    Description: Username for MySQL database access
+    Type: String
+    MinLength: '1'
+    MaxLength: '16'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+  
+  DBPassword:
+    NoEcho: 'true'
+    Description: Password MySQL database access
+    Type: String
+    MinLength: '8'
+    MaxLength: '41'
+    AllowedPattern: '[a-zA-Z0-9]*'
+    ConstraintDescription: must contain only alphanumeric characters.
+
+  
+
+
+Resources:
+  SecurityGroupApp:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: Fn::ImportValue: VPCID
+      GroupDescription: SecurityGroup to access webapplication
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: To allow world for port 80
+          FromPort: 80
+          ToPort: 80
+          IpProtocol: tcp
+        - CidrIp: 0.0.0.0/0
+          Description: To allow world for port 22
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp
+        - CidrIp: 0.0.0.0/0
+          Description: To allow world for port 443
+          FromPort: 443
+          ToPort: 443
+          IpProtocol: tcp
+        Tags:
+          Key: Name
+          Value: ApplicationSecurityGroup
+  
+  SecurityGroupRDS:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: Fn::ImportValue: VPCID
+      GroupDescription: SecurityGroup to access database
+      SecurityGroupIngress:
+        - Description: To allow world for port 5432
+          FromPort: 5432
+          ToPort: 5432
+          IpProtocol: tcp
+          SourceSecurityGroupId: !Ref ApplicationSecurityGroup
+      Tags:
+          Key: Name
+          Value: DatabaseSecurityGroup
+
+  WebAppEC2S3Policy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: !Join ['', [!Ref "AWS::Region", !Ref POLICYNAME]]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:Get*'
+              - 's3:List*'
+            Resource: !Join ['', [!Ref "arn:aws:s3", !Ref BUCKETNAME, "/*" ]]
+          - Effect: Allow
+            Action:
+              - 's3:Get*'
+              - 's3:List*'
+              - 's3:Delete*'
+              - 's3:Put*'
+            Resource: !Join ['', [!Ref "arn:aws:s3", !Ref BUCKETNAMEFORWEBAPP, "/*" ]]
+      # # Add a new IAM managed policy to an existing IAM role
+      # Roles: 
+      #   - !Ref ROLENAME
+
+  WebAppEC2S3Role:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join ['', [!Ref "AWS::Region", !Ref ROLENAME]]
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      # Add a new IAM managed policy to a new IAM role
+      ManagedPolicyArns:
+        # Attach a new policy
+        - !Ref POLICYNAME
+  
+  DBSubnetGroup:
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties:
+      DBSubnetGroupDescription: DB subnet group for RDS
+      DBSubnetGroupName: MyDBSubnetGroup
+      SubnetIds:
+        - Fn::ImportValue: PublicSubnet2
+        - Fn::ImportValue: PublicSubnet3
+
+  RdsInstance:
+    Type: "AWS::RDS::DBInstance"
+    Properties:
+      DBInstanceIdentifier: !Ref DBInstanceID
+      DBName: !Ref DBName
+      DBInstanceClass: !Ref DBInstanceClass
+      AllocatedStorage: !Ref DBAllocatedStorage
+      Engine: Postgres
+      EngineVersion: 10.6
+      MultiAZ: false
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      PubliclyAccessible: false
+      VPCSecurityGroups: !Ref SecurityGroupRDS
+      DBSubnetGroupName: !Ref DBSubnetGroup
