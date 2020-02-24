@@ -19,6 +19,10 @@ Parameters:
       Description: Role name
       Type: String
 
+  DBSubnetGroupName:
+    Description: DB subnet group name
+    Type: String
+  
   DBInstanceID:
     Description: My database instance
     Type: String
@@ -26,6 +30,7 @@ Parameters:
     MaxLength: '63'
     AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
     ConstraintDescription: Must begin with a letter and must not end with a hyphen or contain two consecutive hyphens
+    Default: "csye6225spring2020"
 
   DBName:
     Description: My database
@@ -34,11 +39,13 @@ Parameters:
     MaxLength: '64'
     AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
     ConstraintDescription: Must begin with a letter and contain only alphanumeric characters.
+    Default: "csye6225"
   
   DBInstanceClass:
     Description: DB instance class
     Type: String
     ConstraintDescription: Must select a valid DB instance type.
+    Default: db.t3.micro
   
   DBAllocatedStorage:
     Default: '50'
@@ -48,6 +55,26 @@ Parameters:
     MaxValue: '1024'
     ConstraintDescription: must be between 20 and 65536 GiB.
   
+  Engine:
+      Description: Engine name
+      Type: String
+      Default: postgres
+
+  EngineVersion:
+    Description: Engine version
+    Type: String
+    Default: 10.11
+
+  MultiAZ:
+    Description: Engine version
+    Type: String
+    Default: False
+
+  PubliclyAccessible:
+    Description: Engine version
+    Type: String
+    Default: False
+
   DBUsername:
     NoEcho: 'true'
     Description: Username for MySQL database access
@@ -55,7 +82,8 @@ Parameters:
     MinLength: '1'
     MaxLength: '16'
     AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
-    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters
+    Default: "csye6225user"
   
   DBPassword:
     NoEcho: 'true'
@@ -65,8 +93,12 @@ Parameters:
     MaxLength: '41'
     AllowedPattern: '[a-zA-Z0-9]*'
     ConstraintDescription: must contain only alphanumeric characters.
+    Default: "csye6225pwd"
 
-  
+  KeyName:
+    Description: Key name
+    Type: String
+
 
 
 Resources:
@@ -74,12 +106,17 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       VpcId: Fn::ImportValue: VPCID
-      GroupDescription: SecurityGroup to access webapplication
+      GroupDescription: SecurityGroup to access web application
       SecurityGroupIngress:
         - CidrIp: 0.0.0.0/0
           Description: To allow world for port 80
           FromPort: 80
           ToPort: 80
+          IpProtocol: tcp
+        - CidrIp: 0.0.0.0/0
+          Description: To allow world for port 8080
+          FromPort: 8080
+          ToPort: 8080
           IpProtocol: tcp
         - CidrIp: 0.0.0.0/0
           Description: To allow world for port 22
@@ -91,9 +128,9 @@ Resources:
           FromPort: 443
           ToPort: 443
           IpProtocol: tcp
-        Tags:
-          Key: Name
-          Value: ApplicationSecurityGroup
+      Tags:
+        Key: Name
+        Value: ApplicationSecurityGroup
   
   SecurityGroupRDS:
     Type: AWS::EC2::SecurityGroup
@@ -105,10 +142,10 @@ Resources:
           FromPort: 5432
           ToPort: 5432
           IpProtocol: tcp
-          SourceSecurityGroupId: !Ref ApplicationSecurityGroup
+          SourceSecurityGroupId: !Ref SecurityGroupApp
       Tags:
-          Key: Name
-          Value: DatabaseSecurityGroup
+        Key: Name
+        Value: DatabaseSecurityGroup
 
   WebAppEC2S3Policy:
     Type: 'AWS::IAM::Policy'
@@ -131,7 +168,7 @@ Resources:
             Resource: !Join ['', [!Ref "arn:aws:s3", !Ref BucketNameForWebapp, "/*" ]]
       # # Add a new IAM managed policy to an existing IAM role
       # Roles: 
-      #   - !Ref ROLENAME
+      #   - !Ref WebAppEC2S3Role
 
   WebAppEC2S3Role:
     Type: 'AWS::IAM::Role'
@@ -149,7 +186,7 @@ Resources:
       # Add a new IAM managed policy to a new IAM role
       ManagedPolicyArns:
         # Attach a new policy
-        - !Ref POLICYNAME
+        - !Ref WebAppEC2S3Policy
   
   DBSubnetGroup:
     Type: "AWS::RDS::DBSubnetGroup"
@@ -157,21 +194,120 @@ Resources:
       DBSubnetGroupDescription: DB subnet group for RDS
       DBSubnetGroupName: MyDBSubnetGroup
       SubnetIds:
+        - Fn::ImportValue: PublicSubnet1
         - Fn::ImportValue: PublicSubnet2
         - Fn::ImportValue: PublicSubnet3
+      Tags:
+        Key: Name
+        Value: !Ref DBSubnetGroupName
 
-  RdsInstance:
+  RDSInstance:
     Type: "AWS::RDS::DBInstance"
     Properties:
       DBInstanceIdentifier: !Ref DBInstanceID
       DBName: !Ref DBName
       DBInstanceClass: !Ref DBInstanceClass
       AllocatedStorage: !Ref DBAllocatedStorage
-      Engine: Postgres
-      EngineVersion: 10.6
-      MultiAZ: false
+      Engine: !Ref Engine
+      EngineVersion: !Ref EngineVersion
+      MultiAZ: !Ref MultiAZ
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
-      PubliclyAccessible: false
+      PubliclyAccessible: !Ref PubliclyAccessible
       VPCSecurityGroups: !Ref SecurityGroupRDS
       DBSubnetGroupName: !Ref DBSubnetGroup
+
+  EC2InstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Path: "/"
+      Roles: !Ref WebAppEC2S3Role
+
+  EC2Instance:
+    Type: "AWS::EC2::Instance"
+    DependsOn": !Ref RDSInstance
+    Properties:
+      DisableApiTermination: False
+      ImageId: "ami-07ebfd5b3428b6f4d"
+      InstanceType: "t2.micro"
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      SecurityGroupIds: Fn::GetAtt: [!Ref SecurityGroupApp, "GroupId"]
+      AvailabilityZone: "us-east-1a"
+      SubnetId: Fn::ImportValue: MainPublicSubnet
+      # KeyName: !Ref KeyName
+      BlockDeviceMappings:
+        DeviceName: /dev/sdm
+        Ebs:
+          VolumeType: gp2
+          DeleteOnTermination: true
+          VolumeSize: 20
+      UserData:
+        Fn::Base64:
+          !Join
+            - "\n"
+            - - #!/bin/bash -xe
+              - sudo apt-get update
+              - sudo apt-get install wget -y
+              - sudo apt-get install openjdk-11-jdk apache2 -y
+              - sudo groupadd tomcat
+              - sudo useradd -M -s /bin/nologin -g tomcat -d /opt/tomcat tomcat
+              - cd /tmp
+              - sudo wget https://downloads.apache.org/tomcat/tomcat-8/v8.5.51/bin/apache-tomcat-8.5.51.tar.gz
+              - sudo mkdir /opt/tomcat
+              - sudo tar xvf apache-tomcat-8*tar.gz -C /opt/tomcat --strip-components=1
+              - cd /opt/tomcat
+              - sudo chgrp -R tomcat /opt/tomcat
+              - sudo chmod -R g+r conf
+              - sudo chmod -R g+x conf
+              - sudo chown -R tomcat webapps/ work/ temp/ logs/
+              - cd /etc/systemd/system
+              - sudo touch tomcat.service
+              - sudo chmod 777 tomcat.service
+              - echo '[Unit]' >> tomcat.service
+              - echo 'Description=Apache Tomcat Web Application Container' >> tomcat.service
+              - echo 'After=syslog.target network.target' >> tomcat.service
+              - echo '[Service]' >> tomcat.service
+              - echo 'Type=forking' >> tomcat.service
+              - echo 'Environment=JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64' >> tomcat.service
+              - echo 'Environment=CATALINA_PID=/opt/tomcat/temp/tomcat.pid' >> tomcat.service
+              - echo 'Environment=CATALINA_HOME=/opt/tomcat' >> tomcat.service
+              - echo 'Environment=CATALINA_BASE=/opt/tomcat' >> tomcat.service
+              - echo 'Environment=\"CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC\"' >> tomcat.service
+              - echo 'Environment=\"JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv4Addresses=true\"' >> tomcat.service
+              - echo 'ExecStart=/opt/tomcat/bin/startup.sh' >> tomcat.service
+              - echo 'ExecStop=/bin/kill -15 $MAINPID' >> tomcat.service
+              - echo 'User=tomcat' >> tomcat.service
+              - echo 'Group=tomcat' >> tomcat.service
+              - echo 'UMask=0007' >> tomcat.service
+              - echo 'RestartSec=10' >> tomcat.service
+              - echo 'Restart=always' >> tomcat.service
+              - echo '[Install]' >> tomcat.service
+              - echo 'WantedBy=multi-user.target' >> tomcat.service
+              - sudo systemctl daemon-reload
+              - sudo systemctl enable tomcat.service
+              - sudo systemctl start tomcat.service
+              - sudo systemctl status tomcat
+              
+  S3Bucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: Fn::Sub: "encryptedbucket-${AWS::Region}-${AWS::StackName}"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          ServerSideEncryptionByDefault:
+            SSEAlgorithm: "AES256"
+      LifecycleConfiguration:
+        Rules:
+          Id: "StandardIARule",
+          Prefix: "",
+          Status: "Enabled",
+          Transitions:
+            TransitionInDays: 30,
+            StorageClass: "STANDARD_IA"
+
+Outputs:
+  S3Bucket:
+    Description: The S3 bucket to store attachments
+    Value: !Ref S3Bucket
+    Export:
+      Name: S3Bucket
