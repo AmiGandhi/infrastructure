@@ -243,7 +243,7 @@ Resources:
       SecurityGroupIds: 
         - !Ref SecurityGroupApp
       # AvailabilityZone: "us-east-1a"
-      SubnetId: !ImportValue MainPublicSubnet
+      SubnetId: !ImportValue PublicSubnet1
       # KeyName: !Ref KeyName
       BlockDeviceMappings:
         - DeviceName: /dev/sdm
