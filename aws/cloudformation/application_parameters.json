@@ -1,0 +1,82 @@
+[
+    {
+        "ParameterKey": "BucketName",
+        "ParameterValue": "myBucket",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "BucketNameForWebapp",
+        "ParameterValue": "myBucketForWebapp",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "PolicyName",
+        "ParameterValue": "myPolicy",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "RoleName",
+        "ParameterValue": "myRole",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "DBSubnetGroupName",
+        "ParameterValue": "myDBSubnetGroup",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "DBInstanceID",
+        "ParameterValue": "",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "DBName",
+        "ParameterValue": "",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "DBInstanceClass",
+        "ParameterValue": "",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "DBAllocatedStorage",
+        "ParameterValue": "",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "Engine",
+        "ParameterValue": "",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "EngineVersion",
+        "ParameterValue": "",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "MultiAZ",
+        "ParameterValue": "",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "PubliclyAccessible",
+        "ParameterValue": "",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "DBUsername",
+        "ParameterValue": "",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "DBPassword",
+        "ParameterValue": "",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "KeyName",
+        "ParameterValue": "",
+        "UsePreviousValue": true
+      }
+]

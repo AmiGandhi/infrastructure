@@ -6,22 +6,27 @@ Parameters:
   BucketName:
       Description: Bucket Name
       Type: String
+      Default: mybucket
 
   BucketNameForWebapp:
       Description: Bucket name for storing attachments
       Type: String
+      Default: mybucketforwebapp
   
   PolicyName:
       Description: Policy name
       Type: String
+      Default: mypolicy
 
   RoleName:
       Description: Role name
       Type: String
+      Default: myrole
 
   DBSubnetGroupName:
     Description: DB subnet group name
     Type: String
+    Default: mydbsubnet
   
   DBInstanceID:
     Description: My database instance
@@ -48,12 +53,12 @@ Parameters:
     Default: db.t3.micro
   
   DBAllocatedStorage:
-    Default: '50'
     Description: The size of the database (GiB)
     Type: Number
     MinValue: '5'
     MaxValue: '1024'
     ConstraintDescription: must be between 20 and 65536 GiB.
+    Default: '50'
   
   Engine:
       Description: Engine name
@@ -83,7 +88,7 @@ Parameters:
     MaxLength: '16'
     AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
     ConstraintDescription: must begin with a letter and contain only alphanumeric characters
-    Default: "csye6225user"
+    Default: csye6225user
   
   DBPassword:
     NoEcho: 'true'
@@ -93,11 +98,11 @@ Parameters:
     MaxLength: '41'
     AllowedPattern: '[a-zA-Z0-9]*'
     ConstraintDescription: must contain only alphanumeric characters.
-    Default: "csye6225pwd"
+    Default: csye6225pwd
 
-  KeyName:
-    Description: Key name
-    Type: String
+  # KeyName:
+  #   Description: Key name
+  #   Type: String
 
 
 
@@ -105,7 +110,7 @@ Resources:
   SecurityGroupApp:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      VpcId: Fn::ImportValue: VPCID
+      VpcId: !ImportValue VPCID
       GroupDescription: SecurityGroup to access web application
       SecurityGroupIngress:
         - CidrIp: 0.0.0.0/0
@@ -129,13 +134,13 @@ Resources:
           ToPort: 443
           IpProtocol: tcp
       Tags:
-        Key: Name
-        Value: ApplicationSecurityGroup
+        - Key: Name
+          Value: "ApplicationSecurityGroup"
   
   SecurityGroupRDS:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      VpcId: Fn::ImportValue: VPCID
+      VpcId: !ImportValue VPCID
       GroupDescription: SecurityGroup to access database
       SecurityGroupIngress:
         - Description: To allow world for port 5432
@@ -144,8 +149,8 @@ Resources:
           IpProtocol: tcp
           SourceSecurityGroupId: !Ref SecurityGroupApp
       Tags:
-        Key: Name
-        Value: DatabaseSecurityGroup
+        - Key: Name
+          Value: "DatabaseSecurityGroup"
 
   WebAppEC2S3Policy:
     Type: 'AWS::IAM::Policy'
@@ -154,26 +159,26 @@ Resources:
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
-          - Effect: Allow
+          # - Effect: Allow
+          #   Action:
+          #     - 's3:Get*'
+          #     - 's3:List*'
+          #   Resource: !Join ['', ["arn:aws:s3", !Ref BucketName, "/*" ]]
+          - Effect: "Allow"
             Action:
-              - 's3:Get*'
-              - 's3:List*'
-            Resource: !Join ['', [!Ref "arn:aws:s3", !Ref BucketName, "/*" ]]
-          - Effect: Allow
-            Action:
-              - 's3:Get*'
-              - 's3:List*'
-              - 's3:Delete*'
-              - 's3:Put*'
-            Resource: !Join ['', [!Ref "arn:aws:s3", !Ref BucketNameForWebapp, "/*" ]]
-      # # Add a new IAM managed policy to an existing IAM role
-      # Roles: 
-      #   - !Ref WebAppEC2S3Role
+              - "s3:Get*"
+              - "s3:List*"
+              - "s3:Delete*"
+              - "s3:Put*"
+            Resource: !Join ['', ["arn:aws:s3:::", !Ref BucketName, "/*" ]]
+      # Add a new IAM managed policy to an existing IAM role
+      Roles: 
+        - !Ref WebAppEC2S3Role
 
   WebAppEC2S3Role:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: !Join ['', [!Ref "AWS::Region", !Ref RoleName]]
+      RoleName: !Join ['', [!Ref "AWS::StackName", !Ref "AWS::Region", !Ref RoleName]]
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -184,22 +189,21 @@ Resources:
             Action:
               - 'sts:AssumeRole'
       # Add a new IAM managed policy to a new IAM role
-      ManagedPolicyArns:
-        # Attach a new policy
-        - !Ref WebAppEC2S3Policy
+      # ManagedPolicyArns:
+      #   # Attach a new policy
+      #   - !Ref WebAppEC2S3Policy
   
   DBSubnetGroup:
     Type: "AWS::RDS::DBSubnetGroup"
     Properties:
       DBSubnetGroupDescription: DB subnet group for RDS
-      DBSubnetGroupName: MyDBSubnetGroup
       SubnetIds:
-        - Fn::ImportValue: PublicSubnet1
-        - Fn::ImportValue: PublicSubnet2
-        - Fn::ImportValue: PublicSubnet3
+        - !ImportValue PublicSubnet1
+        - !ImportValue PublicSubnet2
+        - !ImportValue PublicSubnet3
       Tags:
-        Key: Name
-        Value: !Ref DBSubnetGroupName
+        - Key: Name
+          Value: "DBSubnetGroupName"
 
   RDSInstance:
     Type: "AWS::RDS::DBInstance"
@@ -214,39 +218,44 @@ Resources:
       MasterUsername: !Ref DBUsername
       MasterUserPassword: !Ref DBPassword
       PubliclyAccessible: !Ref PubliclyAccessible
-      VPCSecurityGroups: !Ref SecurityGroupRDS
+      VPCSecurityGroups: 
+        - !Ref SecurityGroupRDS
       DBSubnetGroupName: !Ref DBSubnetGroup
-
+      Tags:
+        - Key: String
+          Value: String
+  
   EC2InstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
     Properties:
       Path: "/"
-      Roles: !Ref WebAppEC2S3Role
+      Roles: 
+        - !Ref WebAppEC2S3Role
 
   EC2Instance:
     Type: "AWS::EC2::Instance"
-    DependsOn": !Ref RDSInstance
+    DependsOn: RDSInstance
     Properties:
       DisableApiTermination: False
       ImageId: "ami-07ebfd5b3428b6f4d"
       InstanceType: "t2.micro"
       IamInstanceProfile: !Ref EC2InstanceProfile
-      SecurityGroupIds: Fn::GetAtt: [!Ref SecurityGroupApp, "GroupId"]
-      AvailabilityZone: "us-east-1a"
-      SubnetId: Fn::ImportValue: MainPublicSubnet
+      SecurityGroupIds: 
+        - !Ref SecurityGroupApp
+      # AvailabilityZone: "us-east-1a"
+      SubnetId: !ImportValue MainPublicSubnet
       # KeyName: !Ref KeyName
       BlockDeviceMappings:
-        DeviceName: /dev/sdm
-        Ebs:
-          VolumeType: gp2
-          DeleteOnTermination: true
-          VolumeSize: 20
+        - DeviceName: /dev/sdm
+          Ebs:
+            VolumeType: gp2
+            DeleteOnTermination: True
+            VolumeSize: 20
       UserData:
         Fn::Base64:
           !Join
             - "\n"
-            - - #!/bin/bash -xe
-              - sudo apt-get update
+            - - sudo apt-get update
               - sudo apt-get install wget -y
               - sudo apt-get install openjdk-11-jdk apache2 -y
               - sudo groupadd tomcat
@@ -291,23 +300,22 @@ Resources:
   S3Bucket:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: Fn::Sub: "encryptedbucket-${AWS::Region}-${AWS::StackName}"
+      BucketName: !Join ['', [!Ref "AWS::StackName", !Ref "AWS::Region", !Ref BucketName]]
       BucketEncryption:
         ServerSideEncryptionConfiguration:
-          ServerSideEncryptionByDefault:
-            SSEAlgorithm: "AES256"
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
       LifecycleConfiguration:
         Rules:
-          Id: "StandardIARule",
-          Prefix: "",
-          Status: "Enabled",
-          Transitions:
-            TransitionInDays: 30,
-            StorageClass: "STANDARD_IA"
+          - Id: StandardIARule
+            Status: Enabled
+            Transitions:
+              - TransitionInDays: 30
+                StorageClass: "STANDARD_IA"
 
 Outputs:
   S3Bucket:
     Description: The S3 bucket to store attachments
     Value: !Ref S3Bucket
     Export:
-      Name: S3Bucket
+      Name: mys3bucket

@@ -2,29 +2,25 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: "Set up networking resources - CSYE 6225 Spring 2020"
 
 Parameters:
-  # EnvironmentName:
-  #   Description: An environment name that is prefixed to resource names
-  #   Type: String
-
   VpcCIDR:
     Description: Please enter the IP range (CIDR notation) for this VPC
     Type: String
-    # Default: 10.192.0.0/16
+    Default: 10.192.0.0/16
   
   PublicSubnet1CIDR:
     Description: Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone
     Type: String
-    # Default: 10.192.10.0/24
+    Default: 10.192.10.0/24
 
   PublicSubnet2CIDR:
     Description: Please enter the IP range (CIDR notation) for the public subnet in the second Availability Zone
     Type: String
-    # Default: 10.192.11.0/24
+    Default: 10.192.11.0/24
 
   PublicSubnet3CIDR:
     Description: Please enter the IP range (CIDR notation) for the public subnet in the second Availability Zone
     Type: String
-    # Default: 10.192.12.0/24
+    Default: 10.192.12.0/24
 
 Resources:
   VPC:
