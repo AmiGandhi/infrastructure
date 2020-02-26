@@ -6,35 +6,33 @@ Parameters:
   BucketName:
       Description: Bucket Name
       Type: String
-      Default: mybucket
+      Default: "mybucket"
 
   BucketNameForWebapp:
       Description: Bucket name for storing attachments
       Type: String
-      Default: mybucketforwebapp
+      Default: "mybucketforwebapp"
   
   PolicyName:
       Description: Policy name
       Type: String
-      Default: mypolicy
+      Default: "mypolicy"
 
   RoleName:
       Description: Role name
       Type: String
-      Default: myrole
+      Default: "myrole"
 
   DBSubnetGroupName:
     Description: DB subnet group name
     Type: String
-    Default: mydbsubnet
+    Default: "mydbsubnet"
   
   DBInstanceID:
     Description: My database instance
     Type: String
     MinLength: '1'
     MaxLength: '63'
-    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
-    ConstraintDescription: Must begin with a letter and must not end with a hyphen or contain two consecutive hyphens
     Default: "csye6225spring2020"
 
   DBName:
@@ -42,8 +40,6 @@ Parameters:
     Type: String
     MinLength: '1'
     MaxLength: '64'
-    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
-    ConstraintDescription: Must begin with a letter and contain only alphanumeric characters.
     Default: "csye6225"
   
   DBInstanceClass:
@@ -86,9 +82,7 @@ Parameters:
     Type: String
     MinLength: '1'
     MaxLength: '16'
-    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
-    ConstraintDescription: must begin with a letter and contain only alphanumeric characters
-    Default: csye6225user
+    Default: "csye6225user"
   
   DBPassword:
     NoEcho: 'true'
@@ -96,14 +90,11 @@ Parameters:
     Type: String
     MinLength: '8'
     MaxLength: '41'
-    AllowedPattern: '[a-zA-Z0-9]*'
-    ConstraintDescription: must contain only alphanumeric characters.
-    Default: csye6225pwd
+    Default: "csye6225password"
 
-  # KeyName:
-  #   Description: Key name
-  #   Type: String
-
+  KeyName:
+    Description: Key name
+    Type: String
 
 
 Resources:
@@ -244,7 +235,7 @@ Resources:
         - !Ref SecurityGroupApp
       # AvailabilityZone: "us-east-1a"
       SubnetId: !ImportValue PublicSubnet1
-      # KeyName: !Ref KeyName
+      KeyName: !Ref KeyName
       BlockDeviceMappings:
         - DeviceName: /dev/sdm
           Ebs:
@@ -253,22 +244,33 @@ Resources:
             VolumeSize: 20
       UserData:
         Fn::Base64:
-          !Join
-            - "\n"
-            - - #!/bin/bash -xe
-                cd /opt/tomcat/bin
-                sudo touch setenv.sh
-                sudo chmod 777 setenv.sh
-                !Join
-                  - ""
-                  - - sudo echo \"JAVA_OPTS='-Dspring.datasource.username=csye6225user -Dspring.datasource.password=csye6225pwd -Dspring.datasource.url=jdbc:postgresql://
-                      Fn::GetAtt: [
-                          RDSInstance,
-                          Endpoint.Address
-                      ]
-                      :5432/
-                      !Ref DBName
-                sudo systemctl restart tomcat.service
+          Fn::Join:
+          - "\n"
+          - - "#!/bin/bash -xe "
+            - cd /opt/tomcat/bin
+            - sudo touch setenv.sh
+            - sudo chmod 777 setenv.sh
+            - Fn::Join:
+              - ''
+              - - sudo echo "JAVA_OPTS='-Dspring.datasource.username=DBUser -Dspring.datasource.password=DBPassword
+                  -Dspring.datasource.url=jdbc:postgresql://
+                - Fn::GetAtt:
+                  - myRDSDBInstance
+                  - Endpoint.Address
+                - ":5432/"
+                - Fn::Join:
+                  - ''
+                  - - Ref: DBName
+                - " -DamazonProperties.bucketName="
+                - Fn::Join:
+                  - ''
+                  - - Ref: S3Bucket
+                - " -DamazonProperties.endpointUrl="
+                - Fn::GetAtt:
+                  - myRDSDBInstance
+                  - Endpoint.Address
+                - '''" >> /opt/tomcat/bin/setenv.sh'
+            - sudo systemctl restart tomcat.service
 
   S3Bucket:
     Type: "AWS::S3::Bucket"
