@@ -189,9 +189,12 @@ Resources:
     Properties:
       DBSubnetGroupDescription: DB subnet group for RDS
       SubnetIds:
-        - !ImportValue PublicSubnet1
-        - !ImportValue PublicSubnet2
-        - !ImportValue PublicSubnet3
+        - Fn::ImportValue:
+           !Join ['', [!Ref "AWS::Region", "-PublicSubnet1" ]]
+        - Fn::ImportValue:
+           !Join ['', [!Ref "AWS::Region", "-PublicSubnet2" ]]
+        - Fn::ImportValue:
+           !Join ['', [!Ref "AWS::Region", "-PublicSubnet3" ]]
       Tags:
         - Key: Name
           Value: "DBSubnetGroupName"
@@ -234,7 +237,9 @@ Resources:
       SecurityGroupIds: 
         - !Ref SecurityGroupApp
       # AvailabilityZone: "us-east-1a"
-      SubnetId: !ImportValue PublicSubnet1
+      SubnetId:
+        Fn::ImportValue:
+          !Join ['', [!Ref "AWS::Region", "-PublicSubnet1" ]]
       KeyName: !Ref KeyName
       BlockDeviceMappings:
         - DeviceName: /dev/sdm

@@ -1,27 +1,27 @@
 [
     {
         "ParameterKey": "BucketName",
-        "ParameterValue": "myBucket",
+        "ParameterValue": "mybucket",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "BucketNameForWebapp",
-        "ParameterValue": "myBucketForWebapp",
+        "ParameterValue": "mybucketforwebapp",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "PolicyName",
-        "ParameterValue": "myPolicy",
+        "ParameterValue": "mypolicy",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "RoleName",
-        "ParameterValue": "myRole",
+        "ParameterValue": "myrole",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "DBSubnetGroupName",
-        "ParameterValue": "myDBSubnetGroup",
+        "ParameterValue": "mydbsubnetgroup",
         "UsePreviousValue": true
       },
       {
@@ -76,7 +76,7 @@
       },
       {
         "ParameterKey": "KeyName",
-        "ParameterValue": "",
+        "ParameterValue": "aws_id_rsa",
         "UsePreviousValue": true
       }
 ]
