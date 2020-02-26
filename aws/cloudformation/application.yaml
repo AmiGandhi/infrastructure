@@ -31,8 +31,8 @@ Parameters:
   DBInstanceID:
     Description: My database instance
     Type: String
-    MinLength: '1'
-    MaxLength: '63'
+    MinLength: 1
+    MaxLength: 63
     Default: "csye6225spring2020"
 
   DBName:
@@ -51,10 +51,10 @@ Parameters:
   DBAllocatedStorage:
     Description: The size of the database (GiB)
     Type: Number
-    MinValue: '5'
-    MaxValue: '1024'
+    MinValue: 5
+    MaxValue: 1024
     ConstraintDescription: must be between 20 and 65536 GiB.
-    Default: '50'
+    Default: 50
   
   Engine:
       Description: Engine name
@@ -80,16 +80,16 @@ Parameters:
     NoEcho: 'true'
     Description: Username for MySQL database access
     Type: String
-    MinLength: '1'
-    MaxLength: '16'
+    MinLength: 1
+    MaxLength: 16
     Default: "csye6225user"
   
   DBPassword:
     NoEcho: 'true'
     Description: Password MySQL database access
     Type: String
-    MinLength: '8'
-    MaxLength: '41'
+    MinLength: 8
+    MaxLength: 41
     Default: "csye6225password"
 
   KeyName:
@@ -252,10 +252,10 @@ Resources:
             - sudo chmod 777 setenv.sh
             - Fn::Join:
               - ''
-              - - sudo echo "JAVA_OPTS='-Dspring.datasource.username=DBUser -Dspring.datasource.password=DBPassword
+              - - sudo echo "JAVA_OPTS='-Dspring.datasource.username=csye6225user -Dspring.datasource.password=csye6225password
                   -Dspring.datasource.url=jdbc:postgresql://
                 - Fn::GetAtt:
-                  - myRDSDBInstance
+                  - RDSInstance
                   - Endpoint.Address
                 - ":5432/"
                 - Fn::Join:

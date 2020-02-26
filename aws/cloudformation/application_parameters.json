@@ -26,52 +26,52 @@
       },
       {
         "ParameterKey": "DBInstanceID",
-        "ParameterValue": "",
+        "ParameterValue": "csye6225spring2020",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "DBName",
-        "ParameterValue": "",
+        "ParameterValue": "csye6225",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "DBInstanceClass",
-        "ParameterValue": "",
+        "ParameterValue": "db.t3.micro",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "DBAllocatedStorage",
-        "ParameterValue": "",
+        "ParameterValue": "50",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "Engine",
-        "ParameterValue": "",
+        "ParameterValue": "postgres",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "EngineVersion",
-        "ParameterValue": "",
+        "ParameterValue": "10.11",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "MultiAZ",
-        "ParameterValue": "",
+        "ParameterValue": "False",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "PubliclyAccessible",
-        "ParameterValue": "",
+        "ParameterValue": "False",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "DBUsername",
-        "ParameterValue": "",
+        "ParameterValue": "csye6225user",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "DBPassword",
-        "ParameterValue": "",
+        "ParameterValue": "csye6225password",
         "UsePreviousValue": true
       },
       {
