@@ -262,12 +262,12 @@ Resources:
                 !Join
                   - ""
                   - - sudo echo \"JAVA_OPTS='-Dspring.datasource.username=csye6225user -Dspring.datasource.password=csye6225pwd -Dspring.datasource.url=jdbc:postgresql://
-                    - Fn::GetAtt: [
+                      Fn::GetAtt: [
                           RDSInstance,
                           Endpoint.Address
                       ]
-                    - :5432/
-                    - !Ref DBName
+                      :5432/
+                      !Ref DBName
                 sudo systemctl restart tomcat.service
 
   S3Bucket:
