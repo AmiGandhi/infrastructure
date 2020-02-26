@@ -268,7 +268,7 @@ Resources:
                       ]
                     - :5432/
                     - !Ref DBName
-                - sudo systemctl restart tomcat.service
+                sudo systemctl restart tomcat.service
 
   S3Bucket:
     Type: "AWS::S3::Bucket"
@@ -291,4 +291,4 @@ Outputs:
     Description: The S3 bucket to store attachments
     Value: !Ref S3Bucket
     Export:
-      Name: mys3bucket
+      Name: !Join ['', [!Ref "AWS::StackName", "-mys3bucket" ]]
