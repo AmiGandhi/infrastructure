@@ -78,5 +78,10 @@
         "ParameterKey": "KeyName",
         "ParameterValue": "aws_id_rsa",
         "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "AmiId",
+        "ParameterValue": "ami-0001f9013c7ee79cd",
+        "UsePreviousValue": true
       }
 ]

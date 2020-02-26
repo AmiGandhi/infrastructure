@@ -96,6 +96,10 @@ Parameters:
     Description: Key name
     Type: String
 
+  AmiId:
+    Description: AMI ID
+    Type: String
+
 
 Resources:
   SecurityGroupApp:
@@ -231,7 +235,7 @@ Resources:
     DependsOn: RDSInstance
     Properties:
       DisableApiTermination: False
-      ImageId: "ami-07ebfd5b3428b6f4d"
+      ImageId: !Ref AmiId
       InstanceType: "t2.micro"
       IamInstanceProfile: !Ref EC2InstanceProfile
       SecurityGroupIds: 
