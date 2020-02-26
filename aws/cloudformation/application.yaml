@@ -267,7 +267,7 @@ Resources:
                   - - Ref: S3Bucket
                 - " -DamazonProperties.endpointUrl="
                 - Fn::GetAtt:
-                  - myRDSDBInstance
+                  - RDSInstance
                   - Endpoint.Address
                 - '''" >> /opt/tomcat/bin/setenv.sh'
             - sudo systemctl restart tomcat.service
