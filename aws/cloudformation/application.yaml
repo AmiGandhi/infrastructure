@@ -1,0 +1,308 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Set up application resources - CSYE 6225 Spring 2020"
+
+Parameters:
+  
+  PolicyName:
+      Description: Policy name
+      Type: String
+      Default: "WebAppS3"
+
+  RoleName:
+      Description: Role name
+      Type: String
+      Default: "EC2-CSYE6225"
+
+  DBSubnetGroupName:
+    Description: DB subnet group name
+    Type: String
+    Default: "mydbsubnet"
+  
+  DBInstanceID:
+    Description: My database instance
+    Type: String
+    MinLength: 1
+    MaxLength: 63
+    Default: "csye6225-spring2020"
+
+  DBName:
+    Description: My database
+    Type: String
+    MinLength: '1'
+    MaxLength: '64'
+  
+  DBInstanceClass:
+    Description: DB instance class
+    Type: String
+    ConstraintDescription: Must select a valid DB instance type.
+    Default: db.t3.micro
+  
+  DBAllocatedStorage:
+    Description: The size of the database (GiB)
+    Type: Number
+    MinValue: 5
+    MaxValue: 1024
+    ConstraintDescription: must be between 20 and 65536 GiB.
+    Default: 20
+  
+  Engine:
+      Description: Engine name
+      Type: String
+      Default: postgres
+
+  EngineVersion:
+    Description: Engine version
+    Type: String
+    Default: 10.11
+
+  MultiAZ:
+    Description: Engine version
+    Type: String
+
+  PubliclyAccessible:
+    Description: Engine version
+    Type: String
+    Default: "false"
+
+  DBUsername:
+    NoEcho: 'true'
+    Description: Username for MySQL database access
+    Type: String
+    MinLength: 1
+    MaxLength: 16
+  
+  DBPassword:
+    NoEcho: 'true'
+    Description: Password MySQL database access
+    Type: String
+    MinLength: 8
+    MaxLength: 41
+
+  Ec2InstanceType:
+    Description: Ec2InstanceType
+    Type: String
+    Default: "t2.micro"
+
+  KeyName:
+    Description: Key name
+    Type: String
+
+  AmiId:
+    Description: AMI ID
+    Type: String
+
+  VolumeSize:
+    Description: Volume Size
+    Type: String
+
+
+Resources:
+  SecurityGroupApp:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId:
+        Fn::ImportValue:
+         !Join ['-', [!Ref "AWS::Region", "VPCID" ]]
+      GroupDescription: SecurityGroup to access web application
+      GroupName: "application"
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          Description: To allow world for port 80
+          FromPort: 80
+          ToPort: 80
+          IpProtocol: tcp
+        - CidrIp: 0.0.0.0/0
+          Description: To allow world for port 8080
+          FromPort: 8080
+          ToPort: 8080
+          IpProtocol: tcp
+        - CidrIp: 0.0.0.0/0
+          Description: To allow world for port 22
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp
+        - CidrIp: 0.0.0.0/0
+          Description: To allow world for port 443
+          FromPort: 443
+          ToPort: 443
+          IpProtocol: tcp
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "application" ]]
+  
+  SecurityGroupRDS:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId:
+        Fn::ImportValue:
+         !Join ['-', [!Ref "AWS::Region", "VPCID" ]]
+      GroupDescription: SecurityGroup to access database
+      GroupName: "database"
+      SecurityGroupIngress:
+        - Description: To allow world for port 5432
+          FromPort: 5432
+          ToPort: 5432
+          IpProtocol: tcp
+          SourceSecurityGroupId: !Ref SecurityGroupApp
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "database" ]]
+
+  WebAppEC2S3Policy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: !Ref PolicyName
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "s3:Get*"
+              - "s3:Delete*"
+              - "s3:Put*"
+              - "s3:List*"
+            Resource: !Join ['', ["arn:aws:s3:::", !Ref S3Bucket, "/*" ]]
+      # Add a new IAM managed policy to an existing IAM role
+      Roles:
+        - !Ref WebAppEC2S3Role
+
+  WebAppEC2S3Role:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Ref RoleName
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      # Add a new IAM managed policy to a new IAM role
+      # ManagedPolicyArns:
+      #   # Attach a new policy
+      #   - !Ref WebAppEC2S3Policy
+  
+  DBSubnetGroup:
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties:
+      DBSubnetGroupDescription: DB subnet group for RDS
+      SubnetIds:
+        - Fn::ImportValue:
+           !Join ['-', [!Ref "AWS::Region", "PublicSub1" ]]
+        - Fn::ImportValue:
+           !Join ['-', [!Ref "AWS::Region", "PublicSub2" ]]
+        - Fn::ImportValue:
+           !Join ['-', [!Ref "AWS::Region", "PublicSub3" ]]
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "DBSubnetGroupName" ]]
+
+  RDSInstance:
+    Type: "AWS::RDS::DBInstance"
+    Properties:
+      DBInstanceIdentifier: !Ref DBInstanceID
+      DBName: !Ref DBName
+      DBInstanceClass: !Ref DBInstanceClass
+      AllocatedStorage: !Ref DBAllocatedStorage
+      Engine: !Ref Engine
+      EngineVersion: !Ref EngineVersion
+      MultiAZ: !Ref MultiAZ
+      MasterUsername: !Ref DBUsername
+      MasterUserPassword: !Ref DBPassword
+      PubliclyAccessible: !Ref PubliclyAccessible
+      VPCSecurityGroups: 
+        - !Ref SecurityGroupRDS
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "RDSInstance" ]]
+  
+  EC2InstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+      Path: "/"
+      Roles: 
+        - !Ref WebAppEC2S3Role
+
+  EC2Instance:
+    Type: "AWS::EC2::Instance"
+    DependsOn: RDSInstance
+    Properties:
+      DisableApiTermination: False
+      ImageId: !Ref AmiId
+      InstanceType: !Ref Ec2InstanceType
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      SecurityGroupIds: 
+        - !Ref SecurityGroupApp
+      # AvailabilityZone: "us-east-1a"
+      SubnetId:
+        Fn::ImportValue:
+         !Join ['-', [!Ref "AWS::Region", "PublicSub1" ]]
+      KeyName: !Ref KeyName
+      BlockDeviceMappings:
+        - DeviceName: /dev/sdm
+          Ebs:
+            VolumeType: gp2
+            DeleteOnTermination: True
+            VolumeSize: !Ref VolumeSize
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+          - "\n"
+          - - "#!/bin/bash -xe "
+            - cd /opt/tomcat/bin
+            - sudo touch setenv.sh
+            - sudo chmod 777 setenv.sh
+            - Fn::Join:
+              - ''
+              - - sudo echo "JAVA_OPTS='
+                - " -Dspring.datasource.username="
+                - Fn::Join:
+                  - ''
+                  - - Ref: DBUsername
+                - " -Dspring.datasource.password="
+                - Fn::Join:
+                  - ''
+                  - - Ref: DBPassword
+                - " -Dspring.profiles.active=aws -Dspring.datasource.url=jdbc:postgresql://"
+                - Fn::GetAtt:
+                  - RDSInstance
+                  - Endpoint.Address
+                - ":5432/"
+                - Fn::Join:
+                  - ''
+                  - - Ref: DBName
+                - " -DamazonProperties.bucketName="
+                - Fn::Join:
+                  - ''
+                  - - Ref: S3Bucket
+                - " -DamazonProperties.endpointUrl="
+                - Fn::GetAtt:
+                  - RDSInstance
+                  - Endpoint.Address
+                - '''" >> /opt/tomcat/bin/setenv.sh'
+            - sudo systemctl restart tomcat.service
+
+  S3Bucket:
+    Type: "AWS::S3::Bucket"
+    DeletionPolicy: "Delete"
+    Properties:
+      # To create private bucket
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: 'true'
+        IgnorePublicAcls: 'true'
+        BlockPublicPolicy: 'true'
+        RestrictPublicBuckets: 'true'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: StandardIARule
+            Status: Enabled
+            Transitions:
+              - TransitionInDays: 30
+                StorageClass: "STANDARD_IA"

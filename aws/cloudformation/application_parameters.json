@@ -1,0 +1,87 @@
+[
+      {
+        "ParameterKey": "PolicyName",
+        "ParameterValue": "WebAppS3",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "RoleName",
+        "ParameterValue": "EC2-CSYE6225",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "DBSubnetGroupName",
+        "ParameterValue": "mydbsubnetgroup",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "DBInstanceID",
+        "ParameterValue": "csye6225-spring2020",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "DBName",
+        "ParameterValue": "csye6225",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "DBInstanceClass",
+        "ParameterValue": "db.t3.micro",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "DBAllocatedStorage",
+        "ParameterValue": "20",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "Engine",
+        "ParameterValue": "postgres",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "EngineVersion",
+        "ParameterValue": "10.11",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "MultiAZ",
+        "ParameterValue": "false",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "PubliclyAccessible",
+        "ParameterValue": "false",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "DBUsername",
+        "ParameterValue": "dbuser",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "DBPassword",
+        "ParameterValue": "csye6225password",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "Ec2InstanceType",
+        "ParameterValue": "t2.micro",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "KeyName",
+        "ParameterValue": "aws_prod_id_rsa",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "AmiId",
+        "ParameterValue": "ami-047209cb261e1d4ac",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "VolumeSize",
+        "ParameterValue": "20",
+        "UsePreviousValue": true
+      }
+]
