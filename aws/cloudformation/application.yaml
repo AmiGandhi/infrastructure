@@ -23,14 +23,13 @@ Parameters:
     Type: String
     MinLength: 1
     MaxLength: 63
-    Default: "csye6225spring2020"
+    Default: "csye6225-spring2020"
 
   DBName:
     Description: My database
     Type: String
     MinLength: '1'
     MaxLength: '64'
-    Default: "csye6225"
   
   DBInstanceClass:
     Description: DB instance class
@@ -59,12 +58,11 @@ Parameters:
   MultiAZ:
     Description: Engine version
     Type: String
-    Default: False
 
   PubliclyAccessible:
     Description: Engine version
     Type: String
-    Default: False
+    Default: "false"
 
   DBUsername:
     NoEcho: 'true'
@@ -72,7 +70,6 @@ Parameters:
     Type: String
     MinLength: 1
     MaxLength: 16
-    Default: "csye6225user"
   
   DBPassword:
     NoEcho: 'true'
@@ -80,7 +77,11 @@ Parameters:
     Type: String
     MinLength: 8
     MaxLength: 41
-    Default: "csye6225password"
+
+  Ec2InstanceType:
+    Description: Ec2InstanceType
+    Type: String
+    Default: "t2.micro"
 
   KeyName:
     Description: Key name
@@ -90,13 +91,20 @@ Parameters:
     Description: AMI ID
     Type: String
 
+  VolumeSize:
+    Description: Volume Size
+    Type: String
+
 
 Resources:
   SecurityGroupApp:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      VpcId: !ImportValue VPCID
+      VpcId:
+        Fn::ImportValue:
+         !Join ['-', [!Ref "AWS::Region", "VPCID" ]]
       GroupDescription: SecurityGroup to access web application
+      GroupName: "application"
       SecurityGroupIngress:
         - CidrIp: 0.0.0.0/0
           Description: To allow world for port 80
@@ -120,13 +128,16 @@ Resources:
           IpProtocol: tcp
       Tags:
         - Key: Name
-          Value: "application"
+          Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "application" ]]
   
   SecurityGroupRDS:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      VpcId: !ImportValue VPCID
+      VpcId:
+        Fn::ImportValue:
+         !Join ['-', [!Ref "AWS::Region", "VPCID" ]]
       GroupDescription: SecurityGroup to access database
+      GroupName: "database"
       SecurityGroupIngress:
         - Description: To allow world for port 5432
           FromPort: 5432
@@ -135,7 +146,7 @@ Resources:
           SourceSecurityGroupId: !Ref SecurityGroupApp
       Tags:
         - Key: Name
-          Value: "database"
+          Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "database" ]]
 
   WebAppEC2S3Policy:
     Type: 'AWS::IAM::Policy'
@@ -147,9 +158,9 @@ Resources:
           - Effect: "Allow"
             Action:
               - "s3:Get*"
-              - "s3:List*"
               - "s3:Delete*"
               - "s3:Put*"
+              - "s3:List*"
             Resource: !Join ['', ["arn:aws:s3:::", !Ref S3Bucket, "/*" ]]
       # Add a new IAM managed policy to an existing IAM role
       Roles:
@@ -179,14 +190,14 @@ Resources:
       DBSubnetGroupDescription: DB subnet group for RDS
       SubnetIds:
         - Fn::ImportValue:
-           !Join ['', [!Ref "AWS::Region", "-PublicSubnet1" ]]
+           !Join ['-', [!Ref "AWS::Region", "PublicSub1" ]]
         - Fn::ImportValue:
-           !Join ['', [!Ref "AWS::Region", "-PublicSubnet2" ]]
+           !Join ['-', [!Ref "AWS::Region", "PublicSub2" ]]
         - Fn::ImportValue:
-           !Join ['', [!Ref "AWS::Region", "-PublicSubnet3" ]]
+           !Join ['-', [!Ref "AWS::Region", "PublicSub3" ]]
       Tags:
         - Key: Name
-          Value: "DBSubnetGroupName"
+          Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "DBSubnetGroupName" ]]
 
   RDSInstance:
     Type: "AWS::RDS::DBInstance"
@@ -205,8 +216,8 @@ Resources:
         - !Ref SecurityGroupRDS
       DBSubnetGroupName: !Ref DBSubnetGroup
       Tags:
-        - Key: String
-          Value: String
+        - Key: Name
+          Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "RDSInstance" ]]
   
   EC2InstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
@@ -221,21 +232,21 @@ Resources:
     Properties:
       DisableApiTermination: False
       ImageId: !Ref AmiId
-      InstanceType: "t2.micro"
+      InstanceType: !Ref Ec2InstanceType
       IamInstanceProfile: !Ref EC2InstanceProfile
       SecurityGroupIds: 
         - !Ref SecurityGroupApp
       # AvailabilityZone: "us-east-1a"
       SubnetId:
         Fn::ImportValue:
-          !Join ['', [!Ref "AWS::Region", "-PublicSubnet1" ]]
+         !Join ['-', [!Ref "AWS::Region", "PublicSub1" ]]
       KeyName: !Ref KeyName
       BlockDeviceMappings:
         - DeviceName: /dev/sdm
           Ebs:
             VolumeType: gp2
             DeleteOnTermination: True
-            VolumeSize: 20
+            VolumeSize: !Ref VolumeSize
       UserData:
         Fn::Base64:
           Fn::Join:
@@ -246,8 +257,16 @@ Resources:
             - sudo chmod 777 setenv.sh
             - Fn::Join:
               - ''
-              - - sudo echo "JAVA_OPTS='-Dspring.datasource.username=csye6225user -Dspring.datasource.password=csye6225password
-                  -Dspring.profiles.active=aws -Dspring.datasource.url=jdbc:postgresql://
+              - - sudo echo "JAVA_OPTS='
+                - " -Dspring.datasource.username="
+                - Fn::Join:
+                  - ''
+                  - - Ref: DBUsername
+                - " -Dspring.datasource.password="
+                - Fn::Join:
+                  - ''
+                  - - Ref: DBPassword
+                - " -Dspring.profiles.active=aws -Dspring.datasource.url=jdbc:postgresql://"
                 - Fn::GetAtt:
                   - RDSInstance
                   - Endpoint.Address
@@ -268,7 +287,7 @@ Resources:
 
   S3Bucket:
     Type: "AWS::S3::Bucket"
-    DeletionPolicy: Delete
+    DeletionPolicy: "Delete"
     Properties:
       # To create private bucket
       PublicAccessBlockConfiguration:

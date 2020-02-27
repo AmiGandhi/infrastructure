@@ -1,12 +1,12 @@
 [
       {
         "ParameterKey": "PolicyName",
-        "ParameterValue": "mypolicy",
+        "ParameterValue": "WebAppS3",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "RoleName",
-        "ParameterValue": "myrole",
+        "ParameterValue": "EC2-CSYE6225",
         "UsePreviousValue": true
       },
       {
@@ -16,7 +16,7 @@
       },
       {
         "ParameterKey": "DBInstanceID",
-        "ParameterValue": "csye6225spring2020",
+        "ParameterValue": "csye6225-spring2020",
         "UsePreviousValue": true
       },
       {
@@ -46,17 +46,17 @@
       },
       {
         "ParameterKey": "MultiAZ",
-        "ParameterValue": "False",
+        "ParameterValue": "false",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "PubliclyAccessible",
-        "ParameterValue": "False",
+        "ParameterValue": "false",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "DBUsername",
-        "ParameterValue": "csye6225user",
+        "ParameterValue": "dbuser",
         "UsePreviousValue": true
       },
       {
@@ -65,13 +65,23 @@
         "UsePreviousValue": true
       },
       {
+        "ParameterKey": "Ec2InstanceType",
+        "ParameterValue": "t2.micro",
+        "UsePreviousValue": true
+      },
+      {
         "ParameterKey": "KeyName",
-        "ParameterValue": "aws_id_rsa",
+        "ParameterValue": "aws_prod_id_rsa",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "AmiId",
-        "ParameterValue": "ami-0001f9013c7ee79cd",
+        "ParameterValue": "ami-047209cb261e1d4ac",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "VolumeSize",
+        "ParameterValue": "20",
         "UsePreviousValue": true
       }
 ]
