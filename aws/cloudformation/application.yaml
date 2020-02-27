@@ -2,26 +2,16 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: "Set up application resources - CSYE 6225 Spring 2020"
 
 Parameters:
-
-  BucketName:
-      Description: Bucket Name
-      Type: String
-      Default: "mybucket"
-
-  BucketNameForWebapp:
-      Description: Bucket name for storing attachments
-      Type: String
-      Default: "mybucketforwebapp"
   
   PolicyName:
       Description: Policy name
       Type: String
-      Default: "mypolicy"
+      Default: "WebAppS3"
 
   RoleName:
       Description: Role name
       Type: String
-      Default: "myrole"
+      Default: "EC2-CSYE6225"
 
   DBSubnetGroupName:
     Description: DB subnet group name
@@ -54,7 +44,7 @@ Parameters:
     MinValue: 5
     MaxValue: 1024
     ConstraintDescription: must be between 20 and 65536 GiB.
-    Default: 50
+    Default: 20
   
   Engine:
       Description: Engine name
@@ -130,7 +120,7 @@ Resources:
           IpProtocol: tcp
       Tags:
         - Key: Name
-          Value: "ApplicationSecurityGroup"
+          Value: "application"
   
   SecurityGroupRDS:
     Type: AWS::EC2::SecurityGroup
@@ -145,35 +135,30 @@ Resources:
           SourceSecurityGroupId: !Ref SecurityGroupApp
       Tags:
         - Key: Name
-          Value: "DatabaseSecurityGroup"
+          Value: "database"
 
   WebAppEC2S3Policy:
     Type: 'AWS::IAM::Policy'
     Properties:
-      PolicyName: !Join ['', [!Ref "AWS::Region", !Ref PolicyName]]
+      PolicyName: !Ref PolicyName
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
-          # - Effect: Allow
-          #   Action:
-          #     - 's3:Get*'
-          #     - 's3:List*'
-          #   Resource: !Join ['', ["arn:aws:s3", !Ref BucketName, "/*" ]]
           - Effect: "Allow"
             Action:
               - "s3:Get*"
               - "s3:List*"
               - "s3:Delete*"
               - "s3:Put*"
-            Resource: !Join ['', ["arn:aws:s3:::", !Ref BucketName, "/*" ]]
+            Resource: !Join ['', ["arn:aws:s3:::", !Ref S3Bucket, "/*" ]]
       # Add a new IAM managed policy to an existing IAM role
-      Roles: 
+      Roles:
         - !Ref WebAppEC2S3Role
 
   WebAppEC2S3Role:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: !Join ['', [!Ref "AWS::StackName", !Ref "AWS::Region", !Ref RoleName]]
+      RoleName: !Ref RoleName
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -262,7 +247,7 @@ Resources:
             - Fn::Join:
               - ''
               - - sudo echo "JAVA_OPTS='-Dspring.datasource.username=csye6225user -Dspring.datasource.password=csye6225password
-                  -Dspring.datasource.url=jdbc:postgresql://
+                  -Dspring.profiles.active=aws -Dspring.datasource.url=jdbc:postgresql://
                 - Fn::GetAtt:
                   - RDSInstance
                   - Endpoint.Address
@@ -283,8 +268,14 @@ Resources:
 
   S3Bucket:
     Type: "AWS::S3::Bucket"
+    DeletionPolicy: Delete
     Properties:
-      BucketName: !Join ['', [!Ref "AWS::StackName", !Ref "AWS::Region", !Ref BucketName]]
+      # To create private bucket
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: 'true'
+        IgnorePublicAcls: 'true'
+        BlockPublicPolicy: 'true'
+        RestrictPublicBuckets: 'true'
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -296,10 +287,3 @@ Resources:
             Transitions:
               - TransitionInDays: 30
                 StorageClass: "STANDARD_IA"
-
-Outputs:
-  S3Bucket:
-    Description: The S3 bucket to store attachments
-    Value: !Ref S3Bucket
-    Export:
-      Name: !Join ['', [!Ref "AWS::StackName", "-mys3bucket" ]]
