@@ -1,22 +1,47 @@
 [
       {
+        "ParameterKey": "AppGroupName",
+        "ParameterValue": "appGrp",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "RdsGroupName",
+        "ParameterValue": "RdsGrp",
+        "UsePreviousValue": true
+      },
+      {
         "ParameterKey": "PolicyName",
-        "ParameterValue": "WebAppS3",
+        "ParameterValue": "WebAppS3-policy",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "RoleName",
-        "ParameterValue": "EC2-CSYE6225",
+        "ParameterValue": "EC2-CSYE6225-role",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "DBSubnetGroupName",
-        "ParameterValue": "mydbsubnetgroup",
+        "ParameterValue": "mydbsubnetgroup1",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "Networkstack",
+        "ParameterValue": "netstack3",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "DBInstanceID",
-        "ParameterValue": "csye6225-spring2020",
+        "ParameterValue": "csye6225-spring2020-1",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "KeyName",
+        "ParameterValue": "aws_prod_id_rsa",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "AmiId",
+        "ParameterValue": "ami-047209cb261e1d4ac",
         "UsePreviousValue": true
       },
       {
@@ -67,16 +92,6 @@
       {
         "ParameterKey": "Ec2InstanceType",
         "ParameterValue": "t2.micro",
-        "UsePreviousValue": true
-      },
-      {
-        "ParameterKey": "KeyName",
-        "ParameterValue": "aws_prod_id_rsa",
-        "UsePreviousValue": true
-      },
-      {
-        "ParameterKey": "AmiId",
-        "ParameterValue": "ami-047209cb261e1d4ac",
         "UsePreviousValue": true
       },
       {
