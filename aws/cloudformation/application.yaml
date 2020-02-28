@@ -17,6 +17,18 @@ Parameters:
     Description: DB subnet group name
     Type: String
     Default: "mydbsubnet"
+
+  Networkstack:
+    Description: Network stack name
+    Type: String
+
+  AppGroupName:
+    Description: Application group name
+    Type: String
+
+  RdsGroupName:
+    Description: RDS Group name
+    Type: String
   
   DBInstanceID:
     Description: My database instance
@@ -102,9 +114,9 @@ Resources:
     Properties:
       VpcId:
         Fn::ImportValue:
-         !Join ['-', [!Ref "AWS::Region", "VPCID" ]]
+         !Join ['-', [!Ref Networkstack, !Ref "AWS::Region", "VPCID" ]]
       GroupDescription: SecurityGroup to access web application
-      GroupName: "application"
+      GroupName: !Ref AppGroupName
       SecurityGroupIngress:
         - CidrIp: 0.0.0.0/0
           Description: To allow world for port 80
@@ -135,9 +147,9 @@ Resources:
     Properties:
       VpcId:
         Fn::ImportValue:
-         !Join ['-', [!Ref "AWS::Region", "VPCID" ]]
+         !Join ['-', [!Ref Networkstack, !Ref "AWS::Region", "VPCID" ]]
       GroupDescription: SecurityGroup to access database
-      GroupName: "database"
+      GroupName: !Ref RdsGroupName
       SecurityGroupIngress:
         - Description: To allow world for port 5432
           FromPort: 5432
@@ -190,11 +202,11 @@ Resources:
       DBSubnetGroupDescription: DB subnet group for RDS
       SubnetIds:
         - Fn::ImportValue:
-           !Join ['-', [!Ref "AWS::Region", "PublicSub1" ]]
+           !Join ['-', [!Ref Networkstack, !Ref "AWS::Region", "PublicSub1" ]]
         - Fn::ImportValue:
-           !Join ['-', [!Ref "AWS::Region", "PublicSub2" ]]
+           !Join ['-', [!Ref Networkstack, !Ref "AWS::Region", "PublicSub2" ]]
         - Fn::ImportValue:
-           !Join ['-', [!Ref "AWS::Region", "PublicSub3" ]]
+           !Join ['-', [!Ref Networkstack, !Ref "AWS::Region", "PublicSub3" ]]
       Tags:
         - Key: Name
           Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "DBSubnetGroupName" ]]
@@ -239,7 +251,7 @@ Resources:
       # AvailabilityZone: "us-east-1a"
       SubnetId:
         Fn::ImportValue:
-         !Join ['-', [!Ref "AWS::Region", "PublicSub1" ]]
+         !Join ['-', [!Ref Networkstack, !Ref "AWS::Region", "PublicSub1" ]]
       KeyName: !Ref KeyName
       BlockDeviceMappings:
         - DeviceName: /dev/sdm

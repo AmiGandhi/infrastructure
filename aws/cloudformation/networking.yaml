@@ -129,22 +129,22 @@ Outputs:
     Description: A reference to the created VPC
     Value: !Ref VPC
     Export:
-      Name: !Join ['-', [!Ref "AWS::Region", "VPCID" ]]
+      Name: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "VPCID" ]]
 
   PublicSubnet1:
     Description: A reference to the public subnet in the 1st Availability Zone
     Value: !Ref PublicSubnet1
     Export:
-      Name: !Join ['-', [!Ref "AWS::Region", "PublicSub1" ]]
+      Name: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "PublicSub1" ]]
 
   PublicSubnet2:
     Description: A reference to the public subnet in the 2nd Availability Zone
     Value: !Ref PublicSubnet2
     Export:
-      Name: !Join ['-', [!Ref "AWS::Region", "PublicSub2" ]]
+      Name: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "PublicSub2" ]]
 
   PublicSubnet3:
     Description: A reference to the public subnet in the 3rd Availability Zone
     Value: !Ref PublicSubnet3
     Export:
-      Name: !Join ['-', [!Ref "AWS::Region", "PublicSub3" ]]
+      Name: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "PublicSub3" ]]
