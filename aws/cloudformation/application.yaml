@@ -107,6 +107,55 @@ Parameters:
     Description: Volume Size
     Type: String
 
+  CodeDeployEC2S3PolicyName:
+    Description: CodeDeployEC2S3 policy name
+    Type: String
+    Default: "CodeDeploy-EC2-S3"
+
+  CircleCiUploadToS3PolicyName:
+    Description: CircleCiUploadToS3 policy name
+    Type: String
+    Default: "CircleCI-Upload-To-S3"
+
+  CircleCICodeDeployPolicyName:
+    Description: CircleCICodeDeploy policy name
+    Type: String
+    Default: "CircleCI-Code-Deploy"
+
+  CircleCiEc2AmiPolicyName:
+    Description: CircleCiEc2Ami policy name
+    Type: String
+    Default: "circleci-ec2-ami"
+
+  CodeDeployServicePolicy:
+    Description: CodeDeployService policy name
+    Type: String
+    Default: "codedeploy-bucket"
+
+  CodeDeployEC2ServiceRoleName:
+    Description: Code Deploy EC2 service role name
+    Type: String
+    Default: "CodeDeployEC2ServiceRole"
+
+  CodeDeployServiceRoleName:
+    Description: Code Deploy service role name
+    Type: String
+    Default: "CodeDeployServiceRole"
+
+  AppName:
+    Description: Application name
+    Type: String
+    Default: "csye6225-webapp"
+
+  DeploymentGroupName:
+    Description: Deployment Group name
+    Type: String
+    Default: "csye6225-webapp-deployment"
+
+  EC2InstanceName:
+    Description: EC2 instance for webapp
+    Type: String
+    Default: "EC2Webapplication"
 
 Resources:
   SecurityGroupApp:
@@ -236,7 +285,7 @@ Resources:
     Properties:
       Path: "/"
       Roles: 
-        - !Ref WebAppEC2S3Role
+        - !Ref CodeDeployEC2ServiceRole
 
   EC2Instance:
     Type: "AWS::EC2::Instance"
@@ -296,6 +345,9 @@ Resources:
                   - Endpoint.Address
                 - '''" >> /opt/tomcat/bin/setenv.sh'
             - sudo systemctl restart tomcat.service
+      Tags:
+        - Key: Name
+          Value: !Ref EC2InstanceName
 
   S3Bucket:
     Type: "AWS::S3::Bucket"
@@ -318,3 +370,242 @@ Resources:
             Transitions:
               - TransitionInDays: 30
                 StorageClass: "STANDARD_IA"
+
+  CodeDeployEC2S3Policy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: !Ref CodeDeployEC2S3PolicyName
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "s3:Get*"
+              - "s3:List*"
+            Resource: !Join ['', ["arn:aws:s3:::", !Ref S3Bucket, "/*" ]]
+      # Add a new IAM managed policy to an existing IAM role
+      Roles:
+        - !Ref CodeDeployEC2ServiceRole
+
+  CircleCIUploadToS3Policy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: !Ref CircleCiUploadToS3PolicyName
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "s3:Get*"
+              - "s3:PutObject"
+              - "s3:List*"
+            Resource: !Join ['', ["arn:aws:s3:::", !Ref S3Bucket, "/*" ]]
+      Users:
+        - "circleci"
+
+  CircleCICodeDeployPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: !Ref CircleCICodeDeployPolicyName
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "codedeploy:RegisterApplicationRevision"
+              - "codedeploy:GetApplicationRevision"
+            Resource:
+              - Fn::Join:
+                - ":"
+                - - arn:aws:codedeploy
+                  - Ref: AWS::Region
+                  - Ref: AWS::AccountId
+                  - application
+                  - Ref: APPNAME
+          - Effect: "Allow"
+            Action:
+              - "codedeploy:CreateDeployment"
+              - "codedeploy:GetDeployment"
+            Resource: 
+              - "*"
+          - Effect: "Allow"
+            Action:
+              - "codedeploy:GetDeploymentConfig"
+            Resource:
+              - Fn::Join:
+                - ":"
+                - - arn:aws:codedeploy
+                  - Ref: AWS::Region
+                  - Ref: AWS::AccountId
+                  - deploymentconfig
+                  - CodeDeployDefault.OneAtATime
+              - Fn::Join:
+                - ":"
+                - - arn:aws:codedeploy
+                  - Ref: AWS::Region
+                  - Ref: AWS::AccountId
+                  - deploymentconfig
+                  - CodeDeployDefault.HalfAtATime
+              - Fn::Join:
+                - ":"
+                - - arn:aws:codedeploy
+                  - Ref: AWS::Region
+                  - Ref: AWS::AccountId
+                  - deploymentconfig
+                  - CodeDeployDefault.AllAtOnce
+      Users:
+        - "circleci"
+
+  CircleCiEc2AmiPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: !Ref CircleCiEc2AmiPolicyName
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - ec2:AttachVolume
+          - ec2:AuthorizeSecurityGroupIngress
+          - ec2:CopyImage
+          - ec2:CreateImage
+          - ec2:CreateKeypair
+          - ec2:CreateSecurityGroup
+          - ec2:CreateSnapshot
+          - ec2:CreateTags
+          - ec2:CreateVolume
+          - ec2:DeleteKeyPair
+          - ec2:DeleteSecurityGroup
+          - ec2:DeleteSnapshot
+          - ec2:DeleteVolume
+          - ec2:DeregisterImage
+          - ec2:DescribeImageAttribute
+          - ec2:DescribeImages
+          - ec2:DescribeInstances
+          - ec2:DescribeInstanceStatus
+          - ec2:DescribeRegions
+          - ec2:DescribeSecurityGroups
+          - ec2:DescribeSnapshots
+          - ec2:DescribeSubnets
+          - ec2:DescribeTags
+          - ec2:DescribeVolumes
+          - ec2:DetachVolume
+          - ec2:GetPasswordData
+          - ec2:ModifyImageAttribute
+          - ec2:ModifyInstanceAttribute
+          - ec2:ModifySnapshotAttribute
+          - ec2:RegisterImage
+          - ec2:RunInstances
+          - ec2:StopInstances
+          - ec2:TerminateInstances
+          Resource: "*"
+      Users:
+        - "circleci"
+
+  CodeDeployServicePolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: !Ref CodeDeployServicePolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - autoscaling:CompleteLifecycleAction
+          - autoscaling:DeleteLifecycleHook
+          - autoscaling:DescribeAutoScalingGroups
+          - autoscaling:DescribeLifecycleHooks
+          - autoscaling:PutLifecycleHook
+          - autoscaling:RecordLifecycleActionHeartbeat
+          - autoscaling:CreateAutoScalingGroup
+          - autoscaling:UpdateAutoScalingGroup
+          - autoscaling:EnableMetricsCollection
+          - autoscaling:DescribeAutoScalingGroups
+          - autoscaling:DescribePolicies
+          - autoscaling:DescribeScheduledActions
+          - autoscaling:DescribeNotificationConfigurations
+          - autoscaling:DescribeLifecycleHooks
+          - autoscaling:SuspendProcesses
+          - autoscaling:ResumeProcesses
+          - autoscaling:AttachLoadBalancers
+          - autoscaling:PutScalingPolicy
+          - autoscaling:PutScheduledUpdateGroupAction
+          - autoscaling:PutNotificationConfiguration
+          - autoscaling:PutLifecycleHook
+          - autoscaling:DescribeScalingActivities
+          - autoscaling:DeleteAutoScalingGroup
+          - ec2:DescribeInstances
+          - ec2:DescribeInstanceStatus
+          - ec2:TerminateInstances
+          - tag:GetResources
+          - sns:Publish
+          - cloudwatch:DescribeAlarms
+          - cloudwatch:PutMetricAlarm
+          - elasticloadbalancing:DescribeLoadBalancers
+          - elasticloadbalancing:DescribeInstanceHealth
+          - elasticloadbalancing:RegisterInstancesWithLoadBalancer
+          - elasticloadbalancing:DeregisterInstancesFromLoadBalancer
+          - elasticloadbalancing:DescribeTargetGroups
+          - elasticloadbalancing:DescribeTargetHealth
+          - elasticloadbalancing:RegisterTargets
+          - elasticloadbalancing:DeregisterTargets
+          Resource: "*"
+      Roles:
+        - !Ref CodeDeployServiceRole
+
+  CodeDeployEC2ServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      RoleName: !Ref CodeDeployEC2ServiceRoleName
+
+  CodeDeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - codedeploy.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      RoleName: !Ref CodeDeployServiceRoleName
+
+  WebAppApplication:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ApplicationName: !Ref AppName
+      ComputePlatform: Server
+
+  WebappDeploymentGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    DependsOn: CodeDeployServiceRole
+    Properties:
+      ApplicationName:
+        Ref: WebAppApplication
+      DeploymentGroupName:
+        Ref: DeploymentGroupName
+      DeploymentStyle:
+        DeploymentType: IN_PLACE
+        DeploymentOption: WITHOUT_TRAFFIC_CONTROL
+      DeploymentConfigName: CodeDeployDefault.AllAtOnce
+      Ec2TagFilters:
+      - Key: Name
+        Value: !Ref EC2InstanceName
+        Type: KEY_AND_VALUE
+      AutoRollbackConfiguration:
+        Enabled: 'true'
+        Events:
+        - DEPLOYMENT_FAILURE
+      ServiceRoleArn:
+        Fn::Sub: arn:aws:iam::${AWS::AccountId}:role/CodeDeployServiceRole
