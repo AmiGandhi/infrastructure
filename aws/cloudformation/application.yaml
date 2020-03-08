@@ -396,7 +396,6 @@ Resources:
         Statement:
           - Effect: "Allow"
             Action:
-              - "s3:Get*"
               - "s3:PutObject"
               - "s3:List*"
             Resource: !Join ['', ["arn:aws:s3:::", !Ref S3Bucket, "/*" ]]
