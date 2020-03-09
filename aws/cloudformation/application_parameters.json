@@ -26,7 +26,7 @@
       },
       {
         "ParameterKey": "Networkstack",
-        "ParameterValue": "netstack3",
+        "ParameterValue": "networkstack",
         "UsePreviousValue": true
       },
       {
@@ -36,12 +36,12 @@
       },
       {
         "ParameterKey": "KeyName",
-        "ParameterValue": "aws_prod_id_rsa",
+        "ParameterValue": "aws_id_rsa",
         "UsePreviousValue": true
       },
       {
         "ParameterKey": "AmiId",
-        "ParameterValue": "ami-047209cb261e1d4ac",
+        "ParameterValue": "ami-0b18ab9344e9aa129",
         "UsePreviousValue": true
       },
       {
@@ -97,6 +97,56 @@
       {
         "ParameterKey": "VolumeSize",
         "ParameterValue": "20",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "CodeDeployEC2S3PolicyName",
+        "ParameterValue": "CodeDeploy-EC2-S3",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "CircleCiUploadToS3PolicyName",
+        "ParameterValue": "CircleCI-Upload-To-S3",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "CircleCICodeDeployPolicyName",
+        "ParameterValue": "CircleCI-Code-Deploy",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "CircleCiEc2AmiPolicyName",
+        "ParameterValue": "circleci-ec2-ami",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "CodeDeployServicePolicyName",
+        "ParameterValue": "codedeploy-bucket",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "CodeDeployEC2ServiceRoleName",
+        "ParameterValue": "CodeDeployEC2ServiceRole",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "CodeDeployServiceRoleName",
+        "ParameterValue": "CodeDeployServiceRole",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "AppName",
+        "ParameterValue": "csye6225-webapp",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "DeploymentGroupName",
+        "ParameterValue": "csye6225-webapp-deployment",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "EC2InstanceName",
+        "ParameterValue": "csye6225-webapp",
         "UsePreviousValue": true
       }
 ]
