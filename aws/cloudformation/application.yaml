@@ -215,9 +215,9 @@ Resources:
           Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "database" ]]
 
   WebAppEC2S3Policy:
-    Type: 'AWS::IAM::Policy'
+    Type: 'AWS::IAM::ManagedPolicy'
     Properties:
-      PolicyName: !Ref PolicyName
+      ManagedPolicyName: !Ref PolicyName
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
