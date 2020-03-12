@@ -139,7 +139,7 @@ fabric.properties
 
 #vscode
 .vscode/*
-*/.json
+# */.json
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
