@@ -374,24 +374,24 @@ Resources:
               - TransitionInDays: 30
                 StorageClass: "STANDARD_IA"
 
-  # CodeDeployEC2S3Policy:
-  #   Type: 'AWS::IAM::ManagedPolicy'
-  #   Properties:
-  #     ManagedPolicyName: !Ref CodeDeployEC2S3PolicyName
-  #     PolicyDocument:
-  #       Version: '2012-10-17'
-  #       Statement:
-  #         - Effect: Allow
-  #           Action:
-  #             - s3:GetAccountPublicAccessBlock
-  #             - s3:ListAllMyBuckets
-  #             - s3:ListJobs
-  #           Resource: "*"
-  #         - Effect: "Allow"
-  #           Action:
-  #             - "s3:Get*"
-  #             - "s3:List*"
-  #           Resource: !Join ['', ["arn:aws:s3:::", !Ref CodeDeployBucket, "/*" ]]
+  CodeDeployEC2S3Policy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName: !Ref CodeDeployEC2S3PolicyName
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:GetAccountPublicAccessBlock
+              - s3:ListAllMyBuckets
+              - s3:ListJobs
+            Resource: "*"
+          - Effect: "Allow"
+            Action:
+              - "s3:Get*"
+              - "s3:List*"
+            Resource: !Join ['', ["arn:aws:s3:::", !Ref CodeDeployBucket, "/*" ]]
 
   CircleCIUploadToS3Policy:
     Type: 'AWS::IAM::ManagedPolicy'
