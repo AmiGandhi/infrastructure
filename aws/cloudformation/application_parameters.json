@@ -153,5 +153,10 @@
         "ParameterKey": "EC2InstanceName",
         "ParameterValue": "csye6225-webappprod",
         "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "CodeDeployEC2ServiceRoleName",
+        "ParameterValue": "csye6225-webapp-roleprod",
+        "UsePreviousValue": true
       }
 ]
