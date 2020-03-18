@@ -162,6 +162,11 @@ Parameters:
     Type: String
     Default: "csye6225-webapp"
 
+  CodeDeployEC2ServiceRoleName:
+    Description: Role name for EC2 instance
+    Type: String
+    Default: "csye6225-webapp-role"
+
 Resources:
   SecurityGroupApp:
     Type: AWS::EC2::SecurityGroup
@@ -216,6 +221,8 @@ Resources:
 
   WebAppEC2S3Policy:
     Type: 'AWS::IAM::ManagedPolicy'
+    DependsOn:
+      - CodeDeployEC2ServiceRole
     Properties:
       ManagedPolicyName: !Ref PolicyName
       PolicyDocument:
@@ -264,6 +271,7 @@ Resources:
 
   RDSInstance:
     Type: "AWS::RDS::DBInstance"
+    DeletionPolicy: "Delete"
     Properties:
       DBInstanceIdentifier: !Ref DBInstanceID
       DBName: !Ref DBName
@@ -305,7 +313,7 @@ Resources:
          !Join ['-', [!Ref Networkstack, !Ref "AWS::Region", "PublicSub1" ]]
       KeyName: !Ref KeyName
       BlockDeviceMappings:
-        - DeviceName: /dev/sdm
+        - DeviceName: /dev/sda2
           Ebs:
             VolumeType: gp2
             DeleteOnTermination: True
@@ -329,7 +337,7 @@ Resources:
                 - Fn::Join:
                   - ''
                   - - Ref: DBPassword
-                - " -Dspring.profiles.active=aws -Dspring.datasource.url=jdbc:postgresql://"
+                - " -Dspring.profiles.active="aws" -Dspring.datasource.url=jdbc:postgresql://"
                 - Fn::GetAtt:
                   - RDSInstance
                   - Endpoint.Address
@@ -375,6 +383,8 @@ Resources:
 
   CodeDeployEC2S3Policy:
     Type: 'AWS::IAM::ManagedPolicy'
+    DependsOn:
+      - CodeDeployEC2ServiceRole
     Properties:
       ManagedPolicyName: !Ref CodeDeployEC2S3PolicyName
       PolicyDocument:
@@ -390,7 +400,11 @@ Resources:
             Action:
               - "s3:Get*"
               - "s3:List*"
-            Resource: !Join ['', ["arn:aws:s3:::", !Ref CodeDeployBucket, "/*" ]]
+            Resource:
+              - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket]]
+              - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket, '/*']]
+      Roles:
+        - !Ref CodeDeployEC2ServiceRole
 
   CircleCIUploadToS3Policy:
     Type: 'AWS::IAM::ManagedPolicy'
@@ -402,8 +416,11 @@ Resources:
           - Effect: "Allow"
             Action:
               - "s3:PutObject"
-              - "s3:ListBucket"
-            Resource: !Join ['', ["arn:aws:s3:::", !Ref CodeDeployBucket, "/*" ]]
+              - "s3:List*"
+              - "s3:Get*"
+            Resource:
+              - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket]]
+              - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket, '/*']]
       Users:
         - "circleci"
 
@@ -492,60 +509,10 @@ Resources:
       Users:
         - "circleci"
 
-  CodeDeployServicePolicy:
-    Type: 'AWS::IAM::ManagedPolicy'
-    Properties:
-      ManagedPolicyName: !Ref CodeDeployServicePolicyName
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Action:
-          - autoscaling:CompleteLifecycleAction
-          - autoscaling:DeleteLifecycleHook
-          - autoscaling:DescribeAutoScalingGroups
-          - autoscaling:DescribeLifecycleHooks
-          - autoscaling:PutLifecycleHook
-          - autoscaling:RecordLifecycleActionHeartbeat
-          - autoscaling:CreateAutoScalingGroup
-          - autoscaling:UpdateAutoScalingGroup
-          - autoscaling:EnableMetricsCollection
-          - autoscaling:DescribeAutoScalingGroups
-          - autoscaling:DescribePolicies
-          - autoscaling:DescribeScheduledActions
-          - autoscaling:DescribeNotificationConfigurations
-          - autoscaling:DescribeLifecycleHooks
-          - autoscaling:SuspendProcesses
-          - autoscaling:ResumeProcesses
-          - autoscaling:AttachLoadBalancers
-          - autoscaling:PutScalingPolicy
-          - autoscaling:PutScheduledUpdateGroupAction
-          - autoscaling:PutNotificationConfiguration
-          - autoscaling:PutLifecycleHook
-          - autoscaling:DescribeScalingActivities
-          - autoscaling:DeleteAutoScalingGroup
-          - ec2:DescribeInstances
-          - ec2:DescribeInstanceStatus
-          - ec2:TerminateInstances
-          - tag:GetResources
-          - sns:Publish
-          - cloudwatch:DescribeAlarms
-          - cloudwatch:PutMetricAlarm
-          - elasticloadbalancing:DescribeLoadBalancers
-          - elasticloadbalancing:DescribeInstanceHealth
-          - elasticloadbalancing:RegisterInstancesWithLoadBalancer
-          - elasticloadbalancing:DeregisterInstancesFromLoadBalancer
-          - elasticloadbalancing:DescribeTargetGroups
-          - elasticloadbalancing:DescribeTargetHealth
-          - elasticloadbalancing:RegisterTargets
-          - elasticloadbalancing:DeregisterTargets
-          Resource: "*"
-      Roles:
-        - !Ref CodeDeployServiceRole
-
   CodeDeployEC2ServiceRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Ref CodeDeployEC2ServiceRoleName
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -556,8 +523,8 @@ Resources:
           Action:
           - sts:AssumeRole
       ManagedPolicyArns:
-        - !Ref CodeDeployEC2S3Policy
-      RoleName: !Ref CodeDeployEC2ServiceRoleName
+        - "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+        - "arn:aws:iam::aws:policy/CloudWatchAgentAdminPolicy"
 
   CodeDeployServiceRole:
     Type: AWS::IAM::Role
@@ -568,9 +535,9 @@ Resources:
         - Effect: Allow
           Principal:
             Service:
-            - codedeploy.amazonaws.com
+              - codedeploy.amazonaws.com
           Action:
-          - sts:AssumeRole
+            - sts:AssumeRole
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"
       Path: "/"

@@ -41,7 +41,7 @@
       },
       {
         "ParameterKey": "AmiId",
-        "ParameterValue": "ami-0e1b40cf223a95e51",
+        "ParameterValue": "ami-0b5d1b725802adf2f",
         "UsePreviousValue": true
       },
       {
@@ -152,6 +152,11 @@
       {
         "ParameterKey": "EC2InstanceName",
         "ParameterValue": "csye6225-webappprod",
+        "UsePreviousValue": true
+      },
+      {
+        "ParameterKey": "CodeDeployEC2ServiceRoleName",
+        "ParameterValue": "csye6225-webapp-roleprod",
         "UsePreviousValue": true
       }
 ]
