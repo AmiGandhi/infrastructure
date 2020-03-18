@@ -337,7 +337,8 @@ Resources:
                 - Fn::Join:
                   - ''
                   - - Ref: DBPassword
-                - " -Dspring.profiles.active="aws" -Dspring.datasource.url=jdbc:postgresql://"
+                - " -Dspring.profiles.active="
+                - aws" -Dspring.datasource.url=jdbc:postgresql://"
                 - Fn::GetAtt:
                   - RDSInstance
                   - Endpoint.Address
