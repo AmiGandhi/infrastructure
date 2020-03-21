@@ -1,0 +1,187 @@
+[
+    {
+      "ParameterKey": "Networkstack",
+      "ParameterValue": "networkstack",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "AppGroupName",
+      "ParameterValue": "SecurityGroupApp",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "ELBGroupName",
+      "ParameterValue": "SecurityGroupELB",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "RdsGroupName",
+      "ParameterValue": "SecurityGroupRds",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "KeyName",
+      "ParameterValue": "aws_prod_id_rsa",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "AmiId",
+      "ParameterValue": "ami-0b5d1b725802adf2f",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "InstanceType",
+      "ParameterValue": "t2.micro",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "VolumeSize",
+      "ParameterValue": "20",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "ELBLaunchConfigName",
+      "ParameterValue": "asg_launch_config",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "PolicyName",
+      "ParameterValue": "WebAppS3-policyprod",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "DBSubnetGroupName",
+      "ParameterValue": "mydbsubnetgroup1",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "DBInstanceID",
+      "ParameterValue": "csye6225-spring2020-1prod",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "DBName",
+      "ParameterValue": "csye6225prod",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "DBInstanceClass",
+      "ParameterValue": "db.t3.micro",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "DBAllocatedStorage",
+      "ParameterValue": "20",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "Engine",
+      "ParameterValue": "postgres",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "EngineVersion",
+      "ParameterValue": "10.11",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "MultiAZ",
+      "ParameterValue": "false",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "PubliclyAccessible",
+      "ParameterValue": "false",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "DBUsername",
+      "ParameterValue": "dbuserprod",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "DBPassword",
+      "ParameterValue": "csye6225passwordprod",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "AutoScalingGroupName",
+      "ParameterValue": "AutoScalingGroup",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "AutoScalingCooldownPeriod",
+      "ParameterValue": "60",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "DesiredCapacity",
+      "ParameterValue": "2",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "MaxSize",
+      "ParameterValue": "5",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "MinSize",
+      "ParameterValue": "2",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "CodeDeployEC2S3PolicyName",
+      "ParameterValue": "CodeDeploy-EC2-S3prod",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "CircleCiUploadToS3PolicyName",
+      "ParameterValue": "CircleCI-Upload-To-S3prod",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "CircleCICodeDeployPolicyName",
+      "ParameterValue": "CircleCI-Code-Deployprod",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "CircleCiEc2AmiPolicyName",
+      "ParameterValue": "circleci-ec2-amiprod",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "CodeDeployServicePolicyName",
+      "ParameterValue": "codedeploy-bucketprod",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "CodeDeployEC2ServiceRoleName",
+      "ParameterValue": "CodeDeployEC2ServiceRoleprod",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "CodeDeployServiceRoleName",
+      "ParameterValue": "CodeDeployServiceRoleprod",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "AppName",
+      "ParameterValue": "csye6225-webappprod",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "DeploymentGroupName",
+      "ParameterValue": "csye6225-webapp-deploymentprod",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "CodeDeployBucket",
+      "ParameterValue": "codedeployprod.amigandhi.me",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "CodeDeployEC2ServiceRoleName",
+      "ParameterValue": "csye6225-webapp-roleprod",
+      "UsePreviousValue": true
+    }
+]
