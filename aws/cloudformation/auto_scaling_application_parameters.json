@@ -130,6 +130,11 @@
       "UsePreviousValue": true
     },
     {
+      "ParameterKey": "ELBTargetGroupName",
+      "ParameterValue": "ELBTargetGroup",
+      "UsePreviousValue": true
+    },
+    {
       "ParameterKey": "CodeDeployEC2S3PolicyName",
       "ParameterValue": "CodeDeploy-EC2-S3prod",
       "UsePreviousValue": true

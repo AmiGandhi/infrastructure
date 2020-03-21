@@ -130,7 +130,11 @@ Parameters:
   MinSize:
     Description: Minimum capacity for auto scaling group
     Type: String
-    
+  
+  ELBTargetGroupName:
+    Description: target group for load balancer
+    Type: String
+
   CodeDeployEC2S3PolicyName:
     Description: CodeDeployEC2S3 policy name
     Type: String
@@ -210,7 +214,7 @@ Resources:
     Properties:
       VpcId:
         Fn::ImportValue:
-         !Join ['-', [!Ref Networkstack, !Ref "AWS::Region", "VPCID" ]]
+          !Join ['-', [!Ref Networkstack, !Ref "AWS::Region", "VPCID" ]]
       GroupDescription: SecurityGroup to access web application
       GroupName: !Ref AppGroupName
       SecurityGroupIngress:
@@ -394,25 +398,26 @@ Resources:
   ELBTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
+      Name: !Ref ELBTargetGroupName
+      TargetType: instance
+      DependsOn:
+        - ElasticLoadBalancer
       HealthCheckIntervalSeconds: 10
       HealthCheckTimeoutSeconds: 5
       UnhealthyThresholdCount: 2
       HealthyThresholdCount: 2
       HealthCheckPath: "/health"
-      TargetGroupAttributes:
-      - Key: deregistration_delay.timeout_seconds
-        Value: '20'
-      Name:
-        Fn::Join:
-        - "-"
-        - - Ref: AWS::StackName
-          - TargetGroup
-      Port: 80
+      Port: 8080
       Protocol: HTTP
       VpcId:
-        Fn::ImportValue: VPCID
-    DependsOn:
-    - ElasticLoadBalancer
+        Fn::ImportValue: !Join ['-', [!Ref Networkstack, !Ref "AWS::Region", "VPCID" ]]
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 20
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "TargetGroup" ]]
+
     
 
 
