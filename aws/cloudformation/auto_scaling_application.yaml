@@ -223,8 +223,8 @@ Resources:
       SecurityGroupIngress:
         - SourceSecurityGroupId: !Ref ELBSecurityGroup
           Description: Load balancer Security Group added
-          FromPort: 8080
-          ToPort: 8080
+          FromPort: 80
+          ToPort: 80
           IpProtocol: tcp
       Tags:
         - Key: Name
@@ -382,12 +382,12 @@ Resources:
       TargetType: instance
       DependsOn:
         - ElasticLoadBalancer
-      HealthCheckIntervalSeconds: 10
+      HealthCheckIntervalSeconds: 30
       HealthCheckTimeoutSeconds: 5
       UnhealthyThresholdCount: 2
-      HealthyThresholdCount: 2
+      HealthyThresholdCount: 5
       HealthCheckPath: "/"
-      Port: 8080
+      Port: 80
       Protocol: HTTP
       VpcId:
         Fn::ImportValue: !Join ['-', [!Ref Networkstack, !Ref "AWS::Region", "VPCID" ]]
