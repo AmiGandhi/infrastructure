@@ -135,6 +135,14 @@ Parameters:
     Description: target group for load balancer
     Type: String
 
+  ELBName:
+    Description: Name of load balancer
+    Type: String
+
+  CertificateArn:
+    Description: AWS Certificate Manager Certificate ARN
+    Type: String
+
   CodeDeployEC2S3PolicyName:
     Description: CodeDeployEC2S3 policy name
     Type: String
@@ -245,26 +253,6 @@ Resources:
         - Key: Name
           Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "SecurityGroupRds" ]]
 
-  WebAppEC2S3Policy:
-    Type: 'AWS::IAM::ManagedPolicy'
-    DependsOn:
-      - CodeDeployEC2ServiceRole
-    Properties:
-      ManagedPolicyName: !Ref PolicyName
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: "Allow"
-            Action:
-              - "s3:Get*"
-              - "s3:Delete*"
-              - "s3:Put*"
-              - "s3:List*"
-            Resource: !Join ['', ["arn:aws:s3:::", !Ref S3Bucket, "/*" ]]
-      # Add a new IAM managed policy to an existing IAM role
-      Roles:
-        - !Ref CodeDeployEC2ServiceRole
-
   DBSubnetGroup:
     Type: "AWS::RDS::DBSubnetGroup"
     Properties:
@@ -312,6 +300,7 @@ Resources:
     Type: "AWS::AutoScaling::LaunchConfiguration"
     DependsOn: RDSInstance
     Properties:
+      LaunchConfigurationName: !Ref ELBLaunchConfigName
       AssociatePublicIpAddress: True
       # DisableApiTermination: False
       ImageId: !Ref AmiId
@@ -375,6 +364,8 @@ Resources:
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
+      DependsOn:
+        - ELBListener
       AutoScalingGroupName: !Ref AutoScalingGroupName
       Cooldown: !Ref AutoScalingCooldownPeriod
       LaunchConfigurationName: !Ref AutoScalingLaunchConfig
@@ -418,7 +409,53 @@ Resources:
         - Key: Name
           Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "TargetGroup" ]]
 
-    
+  ElasticLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Ref ELBName
+      Scheme: internet-facing
+      SecurityGroups:
+        - Ref: ELBSecurityGroup
+      Type: application
+      IpAddressType: ipv4
+      Subnets:
+        - Fn::ImportValue:
+           !Join ['-', [!Ref Networkstack, !Ref "AWS::Region", "PublicSub1" ]]
+        - Fn::ImportValue:
+           !Join ['-', [!Ref Networkstack, !Ref "AWS::Region", "PublicSub2" ]]
+        - Fn::ImportValue:
+           !Join ['-', [!Ref Networkstack, !Ref "AWS::Region", "PublicSub3" ]]
+      Tags:
+        - Key: Name
+          Value: !Ref ELBLaunchConfigName
+
+  ELBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      Certificates:
+        - CertificateArn: !Ref CertificateArn
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ELBTargetGroup
+      LoadBalancerArn: !Ref ElasticLoadBalancer
+      Port: 443
+      Protocol: HTTPS
+
+  HTTPListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: redirect
+          RedirectConfig:
+            Protocol: HTTPS
+            Port: 443
+            StatusCode: HTTP_301
+      LoadBalancerArn: !Ref ElasticLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  
+
 
 
   S3Bucket:
@@ -443,6 +480,26 @@ Resources:
               - TransitionInDays: 30
                 StorageClass: "STANDARD_IA"
 
+  WebAppEC2S3Policy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    DependsOn:
+      - CodeDeployEC2ServiceRole
+    Properties:
+      ManagedPolicyName: !Ref PolicyName
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - "s3:Get*"
+              - "s3:Delete*"
+              - "s3:Put*"
+              - "s3:List*"
+            Resource: !Join ['', ["arn:aws:s3:::", !Ref S3Bucket, "/*" ]]
+      # Add a new IAM managed policy to an existing IAM role
+      Roles:
+        - !Ref CodeDeployEC2ServiceRole
+  
   CodeDeployEC2S3Policy:
     Type: 'AWS::IAM::ManagedPolicy'
     DependsOn:
@@ -457,11 +514,11 @@ Resources:
               - s3:GetAccountPublicAccessBlock
               - s3:ListAllMyBuckets
               - s3:ListJobs
-            Resource: "*"
+            Resource: *
           - Effect: "Allow"
             Action:
-              - "s3:Get*"
-              - "s3:List*"
+              - s3:Get*
+              - s3:List*
             Resource:
               - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket]]
               - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket, '/*']]
@@ -586,7 +643,6 @@ Resources:
           - sts:AssumeRole
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-        - "arn:aws:iam::aws:policy/CloudWatchAgentAdminPolicy"
 
   CodeDeployServiceRole:
     Type: AWS::IAM::Role
