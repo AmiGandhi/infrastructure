@@ -444,7 +444,6 @@ Resources:
       HostedZoneName: !Join ['', [!Ref HostedZone, "." ]]
       Name: !Join ['', [!Ref HostedZone, "." ]]
       Comment: Domain for my instance
-      DependsOn: ElasticLoadBalancer
       AliasTarget:
         DNSName:
           Fn::GetAtt:
