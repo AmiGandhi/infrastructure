@@ -191,7 +191,7 @@ Parameters:
 
 Resources:
   ELBSecurityGroup:
-        Type: AWS::EC2::SecurityGroup
+    Type: AWS::EC2::SecurityGroup
     Properties:
       VpcId:
         Fn::ImportValue:
@@ -565,7 +565,7 @@ Resources:
               - s3:GetAccountPublicAccessBlock
               - s3:ListAllMyBuckets
               - s3:ListJobs
-            Resource: *
+            Resource: '*'
           - Effect: "Allow"
             Action:
               - s3:Get*
@@ -741,9 +741,9 @@ Resources:
           # - Name: !Ref ElasticLoadBalancer
         TargetGroupInfoList:
           - Name:
-            Fn::GetAtt:
-              - ELBTargetGroup
-              - TargetGroupName
+              Fn::GetAtt:
+                - ELBTargetGroup
+                - TargetGroupName
       AutoRollbackConfiguration:
         Enabled: True
         Events:
