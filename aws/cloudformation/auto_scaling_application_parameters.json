@@ -145,6 +145,11 @@
       "UsePreviousValue": true
     },
     {
+      "ParameterKey": "HostedZone",
+      "ParameterValue": "amigandhi.me",
+      "UsePreviousValue": true
+    },
+    {
       "ParameterKey": "CodeDeployEC2S3PolicyName",
       "ParameterValue": "CodeDeploy-EC2-S3prod",
       "UsePreviousValue": true
@@ -162,11 +167,6 @@
     {
       "ParameterKey": "CircleCiEc2AmiPolicyName",
       "ParameterValue": "circleci-ec2-amiprod",
-      "UsePreviousValue": true
-    },
-    {
-      "ParameterKey": "CodeDeployServicePolicyName",
-      "ParameterValue": "codedeploy-bucketprod",
       "UsePreviousValue": true
     },
     {
@@ -192,11 +192,6 @@
     {
       "ParameterKey": "CodeDeployBucket",
       "ParameterValue": "codedeployprod.amigandhi.me",
-      "UsePreviousValue": true
-    },
-    {
-      "ParameterKey": "CodeDeployEC2ServiceRoleName",
-      "ParameterValue": "csye6225-webapp-roleprod",
       "UsePreviousValue": true
     }
 ]

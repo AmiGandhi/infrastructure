@@ -143,6 +143,10 @@ Parameters:
     Description: AWS Certificate Manager Certificate ARN
     Type: String
 
+  HostedZone:
+    Description: DNS hosted zone
+    Type: String
+
   CodeDeployEC2S3PolicyName:
     Description: CodeDeployEC2S3 policy name
     Type: String
@@ -162,11 +166,6 @@ Parameters:
     Description: CircleCiEc2Ami policy name
     Type: String
     Default: circleci-ec2-ami
-
-  CodeDeployServicePolicyName:
-    Description: CodeDeployService policy name
-    Type: String
-    Default: codedeploy-bucket
 
   CodeDeployEC2ServiceRoleName:
     Description: Code Deploy EC2 service role name
@@ -193,10 +192,6 @@ Parameters:
     Type: String
     Default: codedeploy.amigandhi.me
 
-  CodeDeployEC2ServiceRoleName:
-    Description: Role name for EC2 instance
-    Type: String
-    Default: csye6225-webapp-role
 
 Resources:
   ELBSecurityGroup:
@@ -254,7 +249,7 @@ Resources:
           Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "SecurityGroupRds" ]]
 
   DBSubnetGroup:
-    Type: "AWS::RDS::DBSubnetGroup"
+    Type: AWS::RDS::DBSubnetGroup
     Properties:
       DBSubnetGroupDescription: DB subnet group for RDS
       SubnetIds:
@@ -269,8 +264,8 @@ Resources:
           Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "DBSubnetGroupName" ]]
 
   RDSInstance:
-    Type: "AWS::RDS::DBInstance"
-    DeletionPolicy: "Delete"
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
     Properties:
       DBInstanceIdentifier: !Ref DBInstanceID
       DBName: !Ref DBName
@@ -290,28 +285,22 @@ Resources:
           Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "RDSInstance" ]]
   
   InstanceProfile:
-    Type: "AWS::IAM::InstanceProfile"
+    Type: AWS::IAM::InstanceProfile
     Properties:
       Path: "/"
       Roles: 
         - !Ref CodeDeployEC2ServiceRole
 
   AutoScalingLaunchConfig:
-    Type: "AWS::AutoScaling::LaunchConfiguration"
+    Type: AWS::AutoScaling::LaunchConfiguration
     DependsOn: RDSInstance
     Properties:
-      LaunchConfigurationName: !Ref ELBLaunchConfigName
       AssociatePublicIpAddress: True
-      # DisableApiTermination: False
       ImageId: !Ref AmiId
       InstanceType: !Ref InstanceType
       IamInstanceProfile: !Ref InstanceProfile
       SecurityGroups: 
         - !Ref SecurityGroupApp
-      # AvailabilityZone: "us-east-1a"
-      # SubnetId:
-      #   Fn::ImportValue:
-      #    !Join ['-', [!Ref Networkstack, !Ref "AWS::Region", "PublicSub1" ]]
       KeyName: !Ref KeyName
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
@@ -397,7 +386,7 @@ Resources:
       HealthCheckTimeoutSeconds: 5
       UnhealthyThresholdCount: 2
       HealthyThresholdCount: 2
-      HealthCheckPath: "/health"
+      HealthCheckPath: "/"
       Port: 8080
       Protocol: HTTP
       VpcId:
@@ -454,13 +443,80 @@ Resources:
       Port: 80
       Protocol: HTTP
 
+  Route53Records:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: !Join ['', [!Ref HostedZone, "." ]]
+      Name: !Join ['', [!Ref HostedZone, "." ]]
+      Comment: Domain for my instance
+      DependsOn: ElasticLoadBalancer
+      AliasTarget:
+        DNSName:
+          Fn::GetAtt:
+            - ElasticLoadBalancer
+            - DNSName
+        EvaluateTargetHealth: True
+        HostedZoneId:
+          Fn::GetAtt:
+            - ElasticLoadBalancer
+            - CanonicalHostedZoneID
+      Type: A
   
+  WebServerScaleUpPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref AutoScalingGroup
+      Cooldown: 10
+      ScalingAdjustment: 1
 
+  WebServerScaleDownPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName: !Ref AutoScalingGroup
+      Cooldown: 10
+      ScalingAdjustment: -1
 
+  CPUAlarmHigh:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Scale-up if CPU > 5% for 1 minute
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 5
+      AlarmActions:
+        - Ref: WebServerScaleUpPolicy
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value:
+            Ref: AutoScalingGroup
+      ComparisonOperator: GreaterThanThreshold
+
+  CPUAlarmLow:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Scale-down if CPU < 3% for 1 minute
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 3
+      AlarmActions:
+        - Ref: WebServerScaleDownPolicy
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value:
+            Ref: AutoScalingGroup
+      ComparisonOperator: LessThanThreshold
 
   S3Bucket:
-    Type: "AWS::S3::Bucket"
-    DeletionPolicy: "Delete"
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
     Properties:
       # To create private bucket
       PublicAccessBlockConfiguration:
@@ -478,10 +534,10 @@ Resources:
             Status: Enabled
             Transitions:
               - TransitionInDays: 30
-                StorageClass: "STANDARD_IA"
+                StorageClass: STANDARD_IA
 
   WebAppEC2S3Policy:
-    Type: 'AWS::IAM::ManagedPolicy'
+    Type: AWS::IAM::ManagedPolicy
     DependsOn:
       - CodeDeployEC2ServiceRole
     Properties:
@@ -501,7 +557,7 @@ Resources:
         - !Ref CodeDeployEC2ServiceRole
   
   CodeDeployEC2S3Policy:
-    Type: 'AWS::IAM::ManagedPolicy'
+    Type: AWS::IAM::ManagedPolicy
     DependsOn:
       - CodeDeployEC2ServiceRole
     Properties:
@@ -526,7 +582,7 @@ Resources:
         - !Ref CodeDeployEC2ServiceRole
 
   CircleCIUploadToS3Policy:
-    Type: 'AWS::IAM::ManagedPolicy'
+    Type: AWS::IAM::ManagedPolicy
     Properties:
       ManagedPolicyName: !Ref CircleCiUploadToS3PolicyName
       PolicyDocument:
@@ -544,7 +600,7 @@ Resources:
         - "circleci"
 
   CircleCICodeDeployPolicy:
-    Type: 'AWS::IAM::ManagedPolicy'
+    Type: AWS::IAM::ManagedPolicy
     Properties:
       ManagedPolicyName: !Ref CircleCICodeDeployPolicyName
       PolicyDocument:
@@ -583,7 +639,7 @@ Resources:
         - "circleci"
 
   CircleCiEc2AmiPolicy:
-    Type: 'AWS::IAM::ManagedPolicy'
+    Type: AWS::IAM::ManagedPolicy
     Properties:
       ManagedPolicyName: !Ref CircleCiEc2AmiPolicyName
       PolicyDocument:
@@ -679,14 +735,22 @@ Resources:
         DeploymentType: IN_PLACE
         DeploymentOption: WITHOUT_TRAFFIC_CONTROL
       DeploymentConfigName: CodeDeployDefault.AllAtOnce
+      AutoScalingGroups:
+        - !Ref AutoScalingGroup
       Ec2TagFilters:
-      - Key: Name
-        Value: !Ref ELBLaunchConfigName
-        Type: KEY_AND_VALUE
+        - Key: Name
+          Value: !Ref ELBLaunchConfigName
+          Type: KEY_AND_VALUE
+      LoadBalancerInfo:
+        TargetGroupInfoList:
+          - Name:
+            Fn::GetAtt:
+              - ELBTargetGroup
+              - TargetGroupName
       AutoRollbackConfiguration:
-        Enabled: 'true'
+        Enabled: True
         Events:
-        - DEPLOYMENT_FAILURE
+          - DEPLOYMENT_FAILURE
       ServiceRoleArn:
         Fn::GetAtt:
           - CodeDeployServiceRole
