@@ -26,7 +26,7 @@
     },
     {
       "ParameterKey": "AmiId",
-      "ParameterValue": "ami-0b5d1b725802adf2f",
+      "ParameterValue": "ami-0dd9e57094c33c236",
       "UsePreviousValue": true
     },
     {
@@ -45,8 +45,8 @@
       "UsePreviousValue": true
     },
     {
-      "ParameterKey": "PolicyName",
-      "ParameterValue": "WebAppS3-policyprod",
+      "ParameterKey": "WebAppEC2S3PolicyName",
+      "ParameterValue": "WebAppS3-policy",
       "UsePreviousValue": true
     },
     {
@@ -56,12 +56,12 @@
     },
     {
       "ParameterKey": "DBInstanceID",
-      "ParameterValue": "csye6225-spring2020-1prod",
+      "ParameterValue": "csye6225-spring2020-1",
       "UsePreviousValue": true
     },
     {
       "ParameterKey": "DBName",
-      "ParameterValue": "csye6225prod",
+      "ParameterValue": "csye6225",
       "UsePreviousValue": true
     },
     {
@@ -96,12 +96,12 @@
     },
     {
       "ParameterKey": "DBUsername",
-      "ParameterValue": "dbuserprod",
+      "ParameterValue": "dbuser",
       "UsePreviousValue": true
     },
     {
       "ParameterKey": "DBPassword",
-      "ParameterValue": "csye6225passwordprod",
+      "ParameterValue": "csye6225password",
       "UsePreviousValue": true
     },
     {
@@ -121,7 +121,7 @@
     },
     {
       "ParameterKey": "MaxSize",
-      "ParameterValue": "10",
+      "ParameterValue": "5",
       "UsePreviousValue": true
     },
     {
@@ -140,53 +140,48 @@
       "UsePreviousValue": true
     },
     {
-      "ParameterKey": "CertificateArn",
-      "ParameterValue": "CertificateArn",
-      "UsePreviousValue": true
-    },
-    {
       "ParameterKey": "HostedZone",
       "ParameterValue": "amigandhi.me",
       "UsePreviousValue": true
     },
     {
       "ParameterKey": "CodeDeployEC2S3PolicyName",
-      "ParameterValue": "CodeDeploy-EC2-S3prod",
+      "ParameterValue": "CodeDeploy-EC2-S3",
       "UsePreviousValue": true
     },
     {
       "ParameterKey": "CircleCiUploadToS3PolicyName",
-      "ParameterValue": "CircleCI-Upload-To-S3prod",
+      "ParameterValue": "CircleCI-Upload-To-S3",
       "UsePreviousValue": true
     },
     {
       "ParameterKey": "CircleCICodeDeployPolicyName",
-      "ParameterValue": "CircleCI-Code-Deployprod",
+      "ParameterValue": "CircleCI-Code-Deploy",
       "UsePreviousValue": true
     },
     {
       "ParameterKey": "CircleCiEc2AmiPolicyName",
-      "ParameterValue": "circleci-ec2-amiprod",
+      "ParameterValue": "circleci-ec2-ami",
       "UsePreviousValue": true
     },
     {
       "ParameterKey": "CodeDeployEC2ServiceRoleName",
-      "ParameterValue": "CodeDeployEC2ServiceRoleprod",
+      "ParameterValue": "CodeDeployEC2ServiceRole",
       "UsePreviousValue": true
     },
     {
       "ParameterKey": "CodeDeployServiceRoleName",
-      "ParameterValue": "CodeDeployServiceRoleprod",
+      "ParameterValue": "CodeDeployServiceRole",
       "UsePreviousValue": true
     },
     {
       "ParameterKey": "AppName",
-      "ParameterValue": "csye6225-webappprod",
+      "ParameterValue": "csye6225-webapp",
       "UsePreviousValue": true
     },
     {
       "ParameterKey": "DeploymentGroupName",
-      "ParameterValue": "csye6225-webapp-deploymentprod",
+      "ParameterValue": "csye6225-webapp-deployment",
       "UsePreviousValue": true
     },
     {

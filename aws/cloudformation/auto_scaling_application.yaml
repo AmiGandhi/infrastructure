@@ -2,11 +2,6 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: "Set up application resources - CSYE 6225 Spring 2020"
 
 Parameters:
-  
-  PolicyName:
-      Description: Policy name
-      Type: String
-      Default: "WebAppS3"
 
   Networkstack:
     Description: Network stack name
@@ -139,13 +134,14 @@ Parameters:
     Description: Name of load balancer
     Type: String
 
-  CertificateArn:
-    Description: AWS Certificate Manager Certificate ARN
-    Type: String
-
   HostedZone:
     Description: DNS hosted zone
     Type: String
+
+  WebAppEC2S3PolicyName:
+    Description: Policy name
+    Type: String
+    Default: "WebAppS3"
 
   CodeDeployEC2S3PolicyName:
     Description: CodeDeployEC2S3 policy name
@@ -204,9 +200,9 @@ Resources:
       GroupDescription: Allow http traffic to webserver
       SecurityGroupIngress:
         - CidrIp: 0.0.0.0/0
-          Description: To allow world for port 443
-          FromPort: 443
-          ToPort: 443
+          Description: To allow world for port 80
+          FromPort: 80
+          ToPort: 80
           IpProtocol: tcp
       Tags:
         - Key: Name
@@ -223,8 +219,8 @@ Resources:
       SecurityGroupIngress:
         - SourceSecurityGroupId: !Ref ELBSecurityGroup
           Description: Load balancer Security Group added
-          FromPort: 80
-          ToPort: 80
+          FromPort: 8080
+          ToPort: 8080
           IpProtocol: tcp
       Tags:
         - Key: Name
@@ -353,8 +349,6 @@ Resources:
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
-      DependsOn:
-        - ELBListener
       AutoScalingGroupName: !Ref AutoScalingGroupName
       Cooldown: !Ref AutoScalingCooldownPeriod
       LaunchConfigurationName: !Ref AutoScalingLaunchConfig
@@ -380,14 +374,13 @@ Resources:
     Properties:
       Name: !Ref ELBTargetGroupName
       TargetType: instance
-      DependsOn:
-        - ElasticLoadBalancer
       HealthCheckIntervalSeconds: 30
+      HealthCheckPort: 8080
       HealthCheckTimeoutSeconds: 5
       UnhealthyThresholdCount: 2
       HealthyThresholdCount: 5
       HealthCheckPath: "/"
-      Port: 80
+      Port: 8080
       Protocol: HTTP
       VpcId:
         Fn::ImportValue: !Join ['-', [!Ref Networkstack, !Ref "AWS::Region", "VPCID" ]]
@@ -396,7 +389,7 @@ Resources:
           Value: 20
       Tags:
         - Key: Name
-          Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "TargetGroup" ]]
+          Value: !Ref ELBLaunchConfigName
 
   ElasticLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -418,27 +411,29 @@ Resources:
         - Key: Name
           Value: !Ref ELBLaunchConfigName
 
-  ELBListener:
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    Properties:
-      Certificates:
-        - CertificateArn: !Ref CertificateArn
-      DefaultActions:
-        - Type: forward
-          TargetGroupArn: !Ref ELBTargetGroup
-      LoadBalancerArn: !Ref ElasticLoadBalancer
-      Port: 443
-      Protocol: HTTPS
+  # ELBListener:
+  #   Type: AWS::ElasticLoadBalancingV2::Listener
+  #   Properties:
+  #     Certificates:
+  #       - CertificateArn: !Ref CertificateArn
+  #     DefaultActions:
+  #       - Type: forward
+  #         TargetGroupArn: !Ref ELBTargetGroup
+  #     LoadBalancerArn: !Ref ElasticLoadBalancer
+  #     Port: 443
+  #     Protocol: HTTPS
 
   HTTPListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       DefaultActions:
-        - Type: redirect
-          RedirectConfig:
-            Protocol: HTTPS
-            Port: 443
-            StatusCode: HTTP_301
+        - Type: forward
+          TargetGroupArn: !Ref ELBTargetGroup
+        # - Type: redirect
+        #   RedirectConfig:
+        #     Protocol: HTTPS
+        #     Port: 443
+        #     StatusCode: HTTP_301
       LoadBalancerArn: !Ref ElasticLoadBalancer
       Port: 80
       Protocol: HTTP
@@ -541,7 +536,7 @@ Resources:
     DependsOn:
       - CodeDeployEC2ServiceRole
     Properties:
-      ManagedPolicyName: !Ref PolicyName
+      ManagedPolicyName: !Ref WebAppEC2S3PolicyName
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -742,6 +737,8 @@ Resources:
           Value: !Ref ELBLaunchConfigName
           Type: KEY_AND_VALUE
       LoadBalancerInfo:
+        # ElbInfoList:
+          # - Name: !Ref ElasticLoadBalancer
         TargetGroupInfoList:
           - Name:
             Fn::GetAtt:
