@@ -141,7 +141,7 @@
     },
     {
       "ParameterKey": "HostedZone",
-      "ParameterValue": "amigandhi.me",
+      "ParameterValue": "prod.amigandhi.me",
       "UsePreviousValue": true
     },
     {
