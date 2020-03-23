@@ -121,7 +121,7 @@
     },
     {
       "ParameterKey": "MaxSize",
-      "ParameterValue": "5",
+      "ParameterValue": "10",
       "UsePreviousValue": true
     },
     {
