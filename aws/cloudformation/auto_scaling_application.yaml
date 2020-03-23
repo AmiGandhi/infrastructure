@@ -342,9 +342,6 @@ Resources:
                   - Endpoint.Address
                 - '''" >> /opt/tomcat/bin/setenv.sh'
             - sudo systemctl restart tomcat.service
-      Tags:
-        - Key: Name
-          Value: !Ref ELBLaunchConfigName
 
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
