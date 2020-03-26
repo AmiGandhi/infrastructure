@@ -116,17 +116,17 @@
     },
     {
       "ParameterKey": "DesiredCapacity",
-      "ParameterValue": "3",
+      "ParameterValue": "2",
       "UsePreviousValue": true
     },
     {
       "ParameterKey": "MaxSize",
-      "ParameterValue": "10",
+      "ParameterValue": "5",
       "UsePreviousValue": true
     },
     {
       "ParameterKey": "MinSize",
-      "ParameterValue": "3",
+      "ParameterValue": "2",
       "UsePreviousValue": true
     },
     {
