@@ -140,6 +140,16 @@
       "UsePreviousValue": true
     },
     {
+      "ParameterKey": "AlarmThresholdLow",
+      "ParameterValue": "10",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "AlarmThresholdHigh",
+      "ParameterValue": "20",
+      "UsePreviousValue": true
+    },
+    {
       "ParameterKey": "HostedZone",
       "ParameterValue": "prod.amigandhi.me",
       "UsePreviousValue": true

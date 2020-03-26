@@ -134,6 +134,14 @@ Parameters:
     Description: Name of load balancer
     Type: String
 
+  AlarmThresholdLow:
+    Description: Threshold to set alarm low alert
+    Type: String
+
+  AlarmThresholdHigh:
+    Description: Threshold to set alarm high alert
+    Type: String
+
   HostedZone:
     Description: DNS hosted zone
     Type: String
@@ -478,7 +486,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 2
-      Threshold: 10
+      Threshold: !Ref AlarmThresholdHigh
       AlarmActions:
         - Ref: WebServerScaleUpPolicy
       Dimensions:
@@ -496,7 +504,7 @@ Resources:
       Statistic: Average
       Period: 60
       EvaluationPeriods: 2
-      Threshold: 5
+      Threshold: !Ref AlarmThresholdLow
       AlarmActions:
         - Ref: WebServerScaleDownPolicy
       Dimensions:
