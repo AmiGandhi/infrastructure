@@ -2,10 +2,30 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: "Setting up serverless resources - CSYE 6225 Spring 2020"
 
 Parameters:
-  VpcCIDR:
-    Description: Please enter the IP range (CIDR notation) for this VPC
+  LambdaExecutionRoleName:
+    Description: Role name for executing lambda
     Type: String
-    Default: 10.192.0.0/16
+
+  LambdaDynamoDBPolicyName:
+    Description: Policy name for DynamoDB
+    Type: String
+
+  LambdaLogsPolicyName:
+    Description: Policy name for Logs
+    Type: String
+
+  LambdaSESPolicyName:
+    Description: Policy name for SES
+    Type: String
+
+  DomainName:
+    Description: Domain Name
+    Type: String
+
+  DynamoDBTableName:
+      Description: Name of the DynamoDB table
+      Type: String
+
 
 
 Resources:
@@ -19,12 +39,12 @@ Resources:
             Principal:
               Service: lambda.amazonaws.com
             Action: sts:AssumeRole
-      RoleName: LambdaExecutionRole
+      RoleName: !Ref LambdaExecutionRoleName
 
   LambdaDynamoDBPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: LambdaDynamoDBPolicy
+      PolicyName: !Ref LambdaDynamoDBPolicyName
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -45,7 +65,7 @@ Resources:
   LambdaLogsPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: LambdaLogsPolicy
+      PolicyName: !Ref LambdaLogsPolicyName
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -61,7 +81,7 @@ Resources:
   LambdaSESPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: LambdaSESPolicy
+      PolicyName: !Ref LambdaSESPolicyName
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -69,7 +89,7 @@ Resources:
             Action:
               - ses:SendEmail
               - ses:SendRawEmail
-            Resource: "*"
+            Resource: '*'
       Roles:
         - Ref: LambdaExecutionRole
 
@@ -82,16 +102,16 @@ Resources:
           - LambdaExecutionRole
           - Arn
       Code:
-        S3Bucket:
-          Ref: S3BUCKETLAMBDA
-        S3Key: cloud-ninja-lambda.zip
-      Runtime: python3.7
-      FunctionName: password_reset
+        S3Bucket: !Ref S3BUCKETLAMBDA
+        S3Key: ROOT.war
+      Runtime: java11
+      FunctionName: due_bills
+      MemorySize: 256
+      Timeout: 180
       Environment:
         Variables:
-          DOMAIN_NAME:
-            Ref: DOMAINIDNAME
-          DYNAMO_TABLE: csye6225
+          DOMAIN_NAME: !Ref DomainName
+          DYNAMO_TABLE: !Ref DynamoDBTableName
 
   LambdaResourcePolicy:
     Type: AWS::Lambda::Permission
@@ -101,7 +121,11 @@ Resources:
       Principal: sns.amazonaws.com
       Action: lambda:InvokeFunction
       SourceArn:
-        Fn::ImportValue: PasswordResetTopicARN
+        Fn::Join:
+          - ':'
+          - - arn:aws:sns:us-east-1
+            - Ref: AWS::AccountId
+            - 'due_bills'
 
   LambdaSNSSubscription:
     Type: AWS::SNS::Subscription
@@ -114,4 +138,4 @@ Resources:
           - Arn
       Protocol: lambda
       TopicArn:
-        Fn::ImportValue: PasswordResetTopicARN
+        Fn::ImportValue: DueBillTopicARN

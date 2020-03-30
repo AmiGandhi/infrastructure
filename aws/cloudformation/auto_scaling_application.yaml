@@ -146,6 +146,10 @@ Parameters:
     Description: DNS hosted zone
     Type: String
 
+  DynamoDBTableName:
+      Description: Name of the DynamoDB table
+      Type: String
+
   WebAppEC2S3PolicyName:
     Description: Policy name
     Type: String
@@ -180,6 +184,21 @@ Parameters:
     Description: Code Deploy service role name
     Type: String
     Default: CodeDeployServiceRole
+
+  SNSTopicSubscribePolicyName:
+    Description: Policy name for SNS topic subscribe
+    Type: String
+    Default: SNS-Topic-Subscribe
+
+  CircleCILambdaPolicyName:
+    Description: Policy name for circleci to access lambda
+    Type: String
+    Default: CirlceCI-Lambda
+
+  CirlceCILambdaS3PolicyName:
+    Description: Policy name for circleci lambda to get objects from s3
+    Type: String
+    Default: CirlceCI-Lambda-Get-From-S3
 
   AppName:
     Description: Application name
@@ -513,6 +532,38 @@ Resources:
             Ref: AutoScalingGroup
       ComparisonOperator: LessThanThreshold
 
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PROVISIONED
+      AttributeDefinitions:
+        - AttributeName: Email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: Email
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: '5'
+        WriteCapacityUnits: '5'
+      TableName: !Ref DynamoDBTableName
+      TimeToLiveSpecification:
+        AttributeName: ExpirationTime
+        Enabled: True
+
+  DueBillSNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName:
+        Fn::Join:
+          - ''
+          - - due_bills_
+            - Ref: AWS::StackName
+      TopicName:
+        Fn::Join:
+          - ''
+          - - due_bills_
+            - Ref: AWS::StackName
+
   S3Bucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Delete
@@ -587,16 +638,14 @@ Resources:
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
-          - Effect: "Allow"
+          - Effect: 'Allow'
             Action:
-              - "s3:PutObject"
-              - "s3:List*"
-              - "s3:Get*"
+              - 's3:PutObject'
             Resource:
               - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket]]
               - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket, '/*']]
       Users:
-        - "circleci"
+        - 'circleci'
 
   CircleCICodeDeployPolicy:
     Type: AWS::IAM::ManagedPolicy
@@ -605,37 +654,37 @@ Resources:
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
-          - Effect: "Allow"
+          - Effect: 'Allow'
             Action:
-              - "codedeploy:RegisterApplicationRevision"
-              - "codedeploy:GetApplicationRevision"
+              - 'codedeploy:RegisterApplicationRevision'
+              - 'codedeploy:GetApplicationRevision'
             Resource:
               - Fn::Join:
-                - ":"
+                - ':'
                 - - arn:aws:codedeploy
                   - Ref: AWS::Region
                   - Ref: AWS::AccountId
                   - application
                   - Ref: AppName
-          - Effect: "Allow"
+          - Effect: 'Allow'
             Action:
-              - "codedeploy:CreateDeployment"
-              - "codedeploy:GetDeployment"
+              - 'codedeploy:CreateDeployment'
+              - 'codedeploy:GetDeployment'
             Resource: 
-              - "*"
-          - Effect: "Allow"
+              - '*'
+          - Effect: 'Allow'
             Action:
-              - "codedeploy:GetDeploymentConfig"
+              - 'codedeploy:GetDeploymentConfig'
             Resource:
               - Fn::Join:
-                - ":"
+                - '':'
                 - - arn:aws:codedeploy
                   - Ref: AWS::Region
                   - Ref: AWS::AccountId
                   - deploymentconfig
                   - CodeDeployDefault.AllAtOnce
       Users:
-        - "circleci"
+        - 'circleci'
 
   CircleCiEc2AmiPolicy:
     Type: AWS::IAM::ManagedPolicy
@@ -681,7 +730,7 @@ Resources:
           - ec2:TerminateInstances
           Resource: "*"
       Users:
-        - "circleci"
+        - 'circleci'
 
   CodeDeployEC2ServiceRole:
     Type: AWS::IAM::Role
@@ -715,6 +764,55 @@ Resources:
         - "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"
       Path: "/"
       RoleName: !Ref CodeDeployServiceRoleName
+
+  SNSTopicSubscribePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Ref SNSTopicSubscribePolicyName
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - sns:Publish
+            Resource:
+              Ref: DueBillSNSTopic
+      Roles:
+        - Ref: CodeDeployEC2ServiceRole
+
+  CircleCILambdaPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Ref CircleCILambdaPolicyName
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - lambda:*
+              - iam:PassRole
+            Resource: '*'
+      Users:
+        - 'circleci'
+
+  CirlceCILambdaS3Policy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Ref CirlceCILambdaS3PolicyName
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+            Resource:
+              Fn::Join:
+              - ''
+              - - 'arn:aws:s3:::'
+                - Ref: CodeDeployBucket
+                - '/*'
+      Users:
+        - 'circleci'
 
   WebAppApplication:
     Type: AWS::CodeDeploy::Application
@@ -756,3 +854,20 @@ Resources:
         Fn::GetAtt:
           - CodeDeployServiceRole
           - Arn
+
+Outputs:
+  DynamoDBTableARN:
+    Description: DynamoDB Table ARN
+    Value:
+      Fn::GetAtt:
+        - DynamoDBTable
+        - Arn
+    Export:
+      Name: DynamoDBTableARN
+
+  DueBillTopicARN:
+    Description: Topic ARN for Lambda to subscribe
+    Value:
+      Ref: DueBillSNSTopic
+    Export:
+      Name: DueBillTopicARN

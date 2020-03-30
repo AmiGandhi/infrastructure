@@ -155,6 +155,11 @@
       "UsePreviousValue": true
     },
     {
+      "ParameterKey": "DynamoDBTableName",
+      "ParameterValue": "csye6225-Dynamodb-table",
+      "UsePreviousValue": true
+    },
+    {
       "ParameterKey": "CodeDeployEC2S3PolicyName",
       "ParameterValue": "CodeDeploy-EC2-S3",
       "UsePreviousValue": true
@@ -182,6 +187,21 @@
     {
       "ParameterKey": "CodeDeployServiceRoleName",
       "ParameterValue": "CodeDeployServiceRole",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "SNSTopicSubscribePolicyName",
+      "ParameterValue": "SNS-Topic-Subscribe",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "CircleCILambdaPolicyName",
+      "ParameterValue": "CirlceCI-Lambda",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "CirlceCILambdaS3PolicyName",
+      "ParameterValue": "CirlceCI-Lambda-Get-From-S3",
       "UsePreviousValue": true
     },
     {
