@@ -20,6 +20,16 @@
       "UsePreviousValue": true
     },
     {
+      "ParameterKey": "DueBillLambdaFunctionName",
+      "ParameterValue": "due_bill_lambda_function",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "CodeDeployBucket",
+      "ParameterValue": "codedeployprod.amigandhi.me",
+      "UsePreviousValue": true
+    },
+    {
       "ParameterKey": "DomainName",
       "ParameterValue": "prod.amigandhi.me",
       "UsePreviousValue": true

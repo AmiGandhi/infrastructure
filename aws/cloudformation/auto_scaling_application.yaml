@@ -213,7 +213,6 @@ Parameters:
   CodeDeployBucket:
     Description: CodeDeploy Bucket name
     Type: String
-    Default: codedeploy.amigandhi.me
 
 
 Resources:
@@ -555,14 +554,14 @@ Resources:
     Properties:
       DisplayName:
         Fn::Join:
-          - ''
-          - - due_bills_
-            - Ref: AWS::StackName
+          - '_'
+          - - Ref: AWS::StackName
+            - due_bills
       TopicName:
         Fn::Join:
-          - ''
-          - - due_bills_
-            - Ref: AWS::StackName
+          - '_'
+          - - Ref: AWS::StackName
+            - due_bills
 
   S3Bucket:
     Type: AWS::S3::Bucket

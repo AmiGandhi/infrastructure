@@ -18,6 +18,14 @@ Parameters:
     Description: Policy name for SES
     Type: String
 
+  DueBillLambdaFunctionName:
+    Description: lambda function name
+    Type: String
+
+  CodeDeployBucket:
+    Description: CodeDeploy Bucket name
+    Type: String
+
   DomainName:
     Description: Domain Name
     Type: String
@@ -93,19 +101,19 @@ Resources:
       Roles:
         - Ref: LambdaExecutionRole
 
-  PasswordResetLambdaFunction:
+  DueBillLambdaFunction:
     Type: AWS::Lambda::Function
     Properties:
-      Handler: password_reset.password_reset
+      Handler: DueBills::getDueBills
       Role:
         Fn::GetAtt:
           - LambdaExecutionRole
           - Arn
       Code:
-        S3Bucket: !Ref S3BUCKETLAMBDA
+        S3Bucket: !Ref CodeDeployBucket
         S3Key: ROOT.war
       Runtime: java11
-      FunctionName: due_bills
+      FunctionName: !Ref DueBillLambdaFunctionName
       MemorySize: 256
       Timeout: 180
       Environment:
@@ -117,7 +125,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName:
-        Ref: PasswordResetLambdaFunction
+        Ref: DueBillLambdaFunction
       Principal: sns.amazonaws.com
       Action: lambda:InvokeFunction
       SourceArn:
@@ -130,11 +138,11 @@ Resources:
   LambdaSNSSubscription:
     Type: AWS::SNS::Subscription
     DependsOn:
-      - PasswordResetLambdaFunction
+      - DueBillLambdaFunction
     Properties:
       Endpoint:
         Fn::GetAtt:
-          - PasswordResetLambdaFunction
+          - DueBillLambdaFunction
           - Arn
       Protocol: lambda
       TopicArn:
