@@ -21,12 +21,12 @@
     },
     {
       "ParameterKey": "KeyName",
-      "ParameterValue": "aws_prod_id_rsa",
+      "ParameterValue": "aws_id_rsa",
       "UsePreviousValue": true
     },
     {
       "ParameterKey": "AmiId",
-      "ParameterValue": "ami-0dd9e57094c33c236",
+      "ParameterValue": "ami-0de92c37939a9167e",
       "UsePreviousValue": true
     },
     {
