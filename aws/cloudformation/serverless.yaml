@@ -70,7 +70,10 @@ Resources:
               - dynamodb:BatchWriteItem
               - dynamodb:PutItem
               - dynamodb:UpdateItem
-            Resource: !Ref DynamoDBTable
+            Resource:
+              Fn::GetAtt:
+                - DynamoDBTable
+                - Arn
 
   LambdaLogsPolicy:
     Type: AWS::IAM::ManagedPolicy
@@ -110,7 +113,7 @@ Resources:
           - Arn
       Code:
         S3Bucket: !Ref CodeDeployBucket
-        S3Key: ROOT.war
+        S3Key: serverless.jar
       Runtime: java8
       MemorySize: 256
       ReservedConcurrentExecutions: 5
