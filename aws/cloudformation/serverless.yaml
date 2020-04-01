@@ -35,7 +35,6 @@ Parameters:
       Type: String
 
 
-
 Resources:
   LambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -47,12 +46,18 @@ Resources:
             Principal:
               Service: lambda.amazonaws.com
             Action: sts:AssumeRole
+      Path: '/'
+      ManagedPolicyArns:
+        - !Ref LambdaDynamoDBPolicy
+        - !Ref LambdaSESPolicy
+        - !Ref LambdaLogsPolicy
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       RoleName: !Ref LambdaExecutionRoleName
 
   LambdaDynamoDBPolicy:
-    Type: AWS::IAM::Policy
+    Type: AWS::IAM::ManagedPolicy
     Properties:
-      PolicyName: !Ref LambdaDynamoDBPolicyName
+      ManagedPolicyName: !Ref LambdaDynamoDBPolicyName
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -67,13 +72,11 @@ Resources:
               - dynamodb:UpdateItem
             Resource:
               Fn::ImportValue: DynamoDBTableARN
-      Roles:
-        - Ref: LambdaExecutionRole
 
   LambdaLogsPolicy:
-    Type: AWS::IAM::Policy
+    Type: AWS::IAM::ManagedPolicy
     Properties:
-      PolicyName: !Ref LambdaLogsPolicyName
+      ManagedPolicyName: !Ref LambdaLogsPolicyName
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -83,13 +86,11 @@ Resources:
               - logs:PutLogEvents
             Effect: Allow
             Resource: arn:aws:logs:*:*:*
-      Roles:
-        - Ref: LambdaExecutionRole
 
   LambdaSESPolicy:
-    Type: AWS::IAM::Policy
+    Type: AWS::IAM::ManagedPolicy
     Properties:
-      PolicyName: !Ref LambdaSESPolicyName
+      ManagedPolicyName: !Ref LambdaSESPolicyName
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -98,13 +99,12 @@ Resources:
               - ses:SendEmail
               - ses:SendRawEmail
             Resource: '*'
-      Roles:
-        - Ref: LambdaExecutionRole
 
   DueBillLambdaFunction:
     Type: AWS::Lambda::Function
     Properties:
-      Handler: DueBills::getDueBills
+      FunctionName: !Ref DueBillLambdaFunctionName
+      Handler: DueBills::handleRequest
       Role:
         Fn::GetAtt:
           - LambdaExecutionRole
@@ -112,28 +112,25 @@ Resources:
       Code:
         S3Bucket: !Ref CodeDeployBucket
         S3Key: ROOT.war
-      Runtime: java11
-      FunctionName: !Ref DueBillLambdaFunctionName
+      Runtime: java8
       MemorySize: 256
-      Timeout: 180
+      ReservedConcurrentExecutions: 5
+      Timeout: 900
       Environment:
         Variables:
-          DOMAIN_NAME: !Ref DomainName
-          DYNAMO_TABLE: !Ref DynamoDBTableName
+          domain: !Ref DomainName
+          dynamoDBTable: !Ref DynamoDBTableName
+          dynamoDBEndPoint: 'dynamodb.us-east-1.amazonaws.com'
+          ttlInMin: 60
 
-  LambdaResourcePolicy:
+  LambdaResourcePermission:
     Type: AWS::Lambda::Permission
     Properties:
-      FunctionName:
-        Ref: DueBillLambdaFunction
-      Principal: sns.amazonaws.com
+      FunctionName: !Ref DueBillLambdaFunction
       Action: lambda:InvokeFunction
+      Principal: sns.amazonaws.com
       SourceArn:
-        Fn::Join:
-          - ':'
-          - - arn:aws:sns:us-east-1
-            - Ref: AWS::AccountId
-            - 'due_bills'
+        Fn::ImportValue: DueBillTopicARN
 
   LambdaSNSSubscription:
     Type: AWS::SNS::Subscription
@@ -147,3 +144,21 @@ Resources:
       Protocol: lambda
       TopicArn:
         Fn::ImportValue: DueBillTopicARN
+
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PROVISIONED
+      AttributeDefinitions:
+        - AttributeName: Email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: Email
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: '5'
+        WriteCapacityUnits: '5'
+      TableName: !Ref DynamoDBTableName
+      TimeToLiveSpecification:
+        AttributeName: 'ttlInMin'
+        Enabled: True

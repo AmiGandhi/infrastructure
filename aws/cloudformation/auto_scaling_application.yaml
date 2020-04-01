@@ -146,9 +146,9 @@ Parameters:
     Description: DNS hosted zone
     Type: String
 
-  DynamoDBTableName:
-      Description: Name of the DynamoDB table
-      Type: String
+  DueBillSQSQueueName:
+    Description: Name of the SQS Queue
+    Type: String
 
   WebAppEC2S3PolicyName:
     Description: Policy name
@@ -531,24 +531,6 @@ Resources:
             Ref: AutoScalingGroup
       ComparisonOperator: LessThanThreshold
 
-  DynamoDBTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      BillingMode: PROVISIONED
-      AttributeDefinitions:
-        - AttributeName: Email
-          AttributeType: S
-      KeySchema:
-        - AttributeName: Email
-          KeyType: HASH
-      ProvisionedThroughput:
-        ReadCapacityUnits: '5'
-        WriteCapacityUnits: '5'
-      TableName: !Ref DynamoDBTableName
-      TimeToLiveSpecification:
-        AttributeName: ExpirationTime
-        Enabled: True
-
   DueBillSNSTopic:
     Type: AWS::SNS::Topic
     Properties:
@@ -562,6 +544,17 @@ Resources:
           - '_'
           - - Ref: AWS::StackName
             - due_bills
+
+  DueBillSQSQueue:
+    Type: AWS::SQS::Queue
+    Properties: 
+      QueueName:
+        Fn::Join:
+          - '-'
+          - - Ref: StackName
+            - SQSQueue.fifo
+      FifoQueue: True
+      ContentBasedDeduplication: True
 
   S3Bucket:
     Type: AWS::S3::Bucket
@@ -779,6 +772,25 @@ Resources:
       Roles:
         - Ref: CodeDeployEC2ServiceRole
 
+  SQSQueuePolicy:
+    Type: AWS::IAM::Policy
+    DependsOn:
+      - DueBillSQSQueue
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - sqs:*
+            Resource:
+              - Fn::GetAtt:
+                - SQSQueue
+                - Arn
+      PolicyName: CodeDeploy-EC2-SQSQueue
+      Roles:
+        - Ref: CodeDeployEC2ServiceRole
+
   CircleCILambdaPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -801,15 +813,13 @@ Resources:
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
-          - Effect: Allow
+          - Effect: 'Allow'
             Action:
-              - s3:GetObject
+              - 's3:PutObject'
+              - 's3:GetObject'
             Resource:
-              Fn::Join:
-              - ''
-              - - 'arn:aws:s3:::'
-                - Ref: CodeDeployBucket
-                - '/*'
+              - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket]]
+              - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket, '/*']]
       Users:
         - 'circleci'
 
@@ -855,15 +865,6 @@ Resources:
           - Arn
 
 Outputs:
-  DynamoDBTableARN:
-    Description: DynamoDB Table ARN
-    Value:
-      Fn::GetAtt:
-        - DynamoDBTable
-        - Arn
-    Export:
-      Name: DynamoDBTableARN
-
   DueBillTopicARN:
     Description: Topic ARN for Lambda to subscribe
     Value:

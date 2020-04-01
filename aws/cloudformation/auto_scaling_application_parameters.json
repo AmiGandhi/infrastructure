@@ -155,8 +155,8 @@
       "UsePreviousValue": true
     },
     {
-      "ParameterKey": "DynamoDBTableName",
-      "ParameterValue": "csye6225-Dynamodb-table",
+      "ParameterKey": "DueBillSQSQueueName",
+      "ParameterValue": "csye6225-sqs-queue",
       "UsePreviousValue": true
     },
     {
