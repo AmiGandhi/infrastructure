@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "Setting up serverless resources - CSYE 6225 Spring 2020"
+Description: Set up serverless resources - CSYE 6225 Spring 2020
 
 Parameters:
   LambdaExecutionRoleName:
