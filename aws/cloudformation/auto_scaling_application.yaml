@@ -1048,7 +1048,7 @@ Resources:
           - Arn
       Code:
         S3Bucket: !Ref CodeDeployBucket
-        S3Key: !S3Key
+        S3Key: !Ref S3Key
       Runtime: java8
       MemorySize: 256
       ReservedConcurrentExecutions: 5
