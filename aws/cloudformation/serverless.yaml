@@ -51,6 +51,9 @@ Resources:
         - !Ref LambdaDynamoDBPolicy
         - !Ref LambdaSESPolicy
         - !Ref LambdaLogsPolicy
+        - arn:aws:iam::aws:policy/AmazonSNSFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       RoleName: !Ref LambdaExecutionRoleName
 
