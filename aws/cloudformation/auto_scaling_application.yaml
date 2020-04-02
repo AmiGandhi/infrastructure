@@ -241,6 +241,10 @@ Parameters:
     Description: Domain Name
     Type: String
 
+  S3Key:
+    Description: S3 Key
+    Type: String
+
   DynamoDBTableName:
       Description: Name of the DynamoDB table
       Type: String
@@ -1044,7 +1048,7 @@ Resources:
           - Arn
       Code:
         S3Bucket: !Ref CodeDeployBucket
-        S3Key: ROOT.jar
+        S3Key: !S3Key
       Runtime: java8
       MemorySize: 256
       ReservedConcurrentExecutions: 5
