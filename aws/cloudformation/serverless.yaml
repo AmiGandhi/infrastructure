@@ -1,0 +1,165 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Set up serverless resources - CSYE 6225 Spring 2020
+
+Parameters:
+  LambdaExecutionRoleName:
+    Description: Role name for executing lambda
+    Type: String
+
+  LambdaDynamoDBPolicyName:
+    Description: Policy name for DynamoDB
+    Type: String
+
+  LambdaLogsPolicyName:
+    Description: Policy name for Logs
+    Type: String
+
+  LambdaSESPolicyName:
+    Description: Policy name for SES
+    Type: String
+
+  DueBillLambdaFunctionName:
+    Description: lambda function name
+    Type: String
+
+  CodeDeployBucket:
+    Description: CodeDeploy Bucket name
+    Type: String
+
+  DomainName:
+    Description: Domain Name
+    Type: String
+
+  DynamoDBTableName:
+      Description: Name of the DynamoDB table
+      Type: String
+
+
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: '/'
+      ManagedPolicyArns:
+        - !Ref LambdaDynamoDBPolicy
+        - !Ref LambdaSESPolicy
+        - !Ref LambdaLogsPolicy
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      RoleName: !Ref LambdaExecutionRoleName
+
+  LambdaDynamoDBPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Ref LambdaDynamoDBPolicyName
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:BatchGetItem
+              - dynamodb:GetItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+            Resource:
+              Fn::GetAtt:
+                - DynamoDBTable
+                - Arn
+
+  LambdaLogsPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Ref LambdaLogsPolicyName
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource: arn:aws:logs:*:*:*
+
+  LambdaSESPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Ref LambdaSESPolicyName
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - ses:SendEmail
+              - ses:SendRawEmail
+            Resource: '*'
+
+  DueBillLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref DueBillLambdaFunctionName
+      Handler: DueBills::handleRequest
+      Role:
+        Fn::GetAtt:
+          - LambdaExecutionRole
+          - Arn
+      Code:
+        S3Bucket: !Ref CodeDeployBucket
+        S3Key: ROOT.jar
+      Runtime: java8
+      MemorySize: 256
+      ReservedConcurrentExecutions: 5
+      Timeout: 900
+      Environment:
+        Variables:
+          domain: !Ref DomainName
+          dynamoDBTable: !Ref DynamoDBTableName
+          ttlInMin: 60
+
+  LambdaResourcePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref DueBillLambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: sns.amazonaws.com
+      SourceArn:
+        Fn::ImportValue: DueBillTopicARN
+
+  LambdaSNSSubscription:
+    Type: AWS::SNS::Subscription
+    DependsOn:
+      - DueBillLambdaFunction
+    Properties:
+      Endpoint:
+        Fn::GetAtt:
+          - DueBillLambdaFunction
+          - Arn
+      Protocol: lambda
+      TopicArn:
+        Fn::ImportValue: DueBillTopicARN
+
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PROVISIONED
+      AttributeDefinitions:
+        - AttributeName: Email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: Email
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: '5'
+        WriteCapacityUnits: '5'
+      TableName: !Ref DynamoDBTableName
+      TimeToLiveSpecification:
+        AttributeName: 'ttl'
+        Enabled: True

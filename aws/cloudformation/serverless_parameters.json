@@ -1,0 +1,42 @@
+[
+    {
+      "ParameterKey": "LambdaExecutionRoleName",
+      "ParameterValue": "lambda-role",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "LambdaDynamoDBPolicyName",
+      "ParameterValue": "lambda-dynamodb-policy",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "LambdaLogsPolicyName",
+      "ParameterValue": "lambda-logging-policy",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "LambdaSESPolicyName",
+      "ParameterValue": "lambda-ses-policy",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "DueBillLambdaFunctionName",
+      "ParameterValue": "DueBills",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "CodeDeployBucket",
+      "ParameterValue": "codedeployprod.amigandhi.me",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "DomainName",
+      "ParameterValue": "prod.amigandhi.me",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "DynamoDBTableName",
+      "ParameterValue": "csye6225-Dynamodb-table",
+      "UsePreviousValue": true
+    }
+]
