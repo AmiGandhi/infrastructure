@@ -1018,7 +1018,7 @@ Resources:
             Effect: Allow
             Resource: "*"
 
-  CircleCIUpdateLambda:
+  CircleCILambda:
     Type: AWS::IAM::Policy
     Properties:
       PolicyDocument:
@@ -1026,13 +1026,9 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
-              - lambda:UpdateFunctionCode
-            Resource:
-              - Fn::Join:
-                  - ''
-                  - - 'arn:aws:lambda:us-east-1:'
-                    - Ref: AWS::AccountId
-                    - :function:DueBillLambdaFunction
+              - lambda:*
+              - iam:PassRole
+            Resource: '*'
       PolicyName: !Ref CircleCILambdaPolicyName
       Users:
         - circleci
