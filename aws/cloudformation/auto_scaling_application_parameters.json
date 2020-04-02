@@ -155,11 +155,6 @@
       "UsePreviousValue": true
     },
     {
-      "ParameterKey": "DueBillSNSTopicName",
-      "ParameterValue": "csye6225-sns-topic",
-      "UsePreviousValue": true
-    },
-    {
       "ParameterKey": "DueBillSQSQueueName",
       "ParameterValue": "csye6225-sqs-queue",
       "UsePreviousValue": true
@@ -205,21 +200,6 @@
       "UsePreviousValue": true
     },
     {
-      "ParameterKey": "SNSTopicSubscribePolicyName",
-      "ParameterValue": "SNS-Topic-Subscribe",
-      "UsePreviousValue": true
-    },
-    {
-      "ParameterKey": "CircleCILambdaPolicyName",
-      "ParameterValue": "CirlceCI-Lambda",
-      "UsePreviousValue": true
-    },
-    {
-      "ParameterKey": "CirlceCILambdaS3PolicyName",
-      "ParameterValue": "CirlceCI-Lambda-Get-From-S3",
-      "UsePreviousValue": true
-    },
-    {
       "ParameterKey": "AppName",
       "ParameterValue": "csye6225-webapp",
       "UsePreviousValue": true
@@ -232,6 +212,51 @@
     {
       "ParameterKey": "CodeDeployBucket",
       "ParameterValue": "codedeployprod.amigandhi.me",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "DueBillSNSTopicName",
+      "ParameterValue": "csye6225-sns-topic",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "SNSTopicSubscribePolicyName",
+      "ParameterValue": "SNS-Topic-Subscribe",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "LambdaExecutionRoleName",
+      "ParameterValue": "lambda-role",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "LambdaLogsPolicyName",
+      "ParameterValue": "lambda-logging-policy",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "CircleCILambdaPolicyName",
+      "ParameterValue": "circle-lambda-policy",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "DueBillLambdaFunctionName",
+      "ParameterValue": "DueBillLambdaFunction",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "CodeDeployBucket",
+      "ParameterValue": "codedeployprod.amigandhi.me",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "DomainName",
+      "ParameterValue": "prod.amigandhi.me",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "DynamoDBTableName",
+      "ParameterValue": "csye6225-Dynamodb-table",
       "UsePreviousValue": true
     }
 ]
