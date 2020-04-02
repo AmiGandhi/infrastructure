@@ -21,7 +21,7 @@
     },
     {
       "ParameterKey": "KeyName",
-      "ParameterValue": "aws_id_rsa",
+      "ParameterValue": "aws_prod_id_rsa",
       "UsePreviousValue": true
     },
     {
@@ -151,7 +151,12 @@
     },
     {
       "ParameterKey": "HostedZone",
-      "ParameterValue": "dev.amigandhi.me",
+      "ParameterValue": "prod.amigandhi.me",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "DueBillSNSTopicName",
+      "ParameterValue": "csye6225-sns-topic",
       "UsePreviousValue": true
     },
     {
@@ -216,7 +221,7 @@
     },
     {
       "ParameterKey": "CodeDeployBucket",
-      "ParameterValue": "codedeploy.amigandhi.me",
+      "ParameterValue": "codedeployprod.amigandhi.me",
       "UsePreviousValue": true
     }
 ]

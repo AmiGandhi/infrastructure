@@ -113,7 +113,7 @@ Resources:
           - Arn
       Code:
         S3Bucket: !Ref CodeDeployBucket
-        S3Key: serverless.jar
+        S3Key: ROOT.jar
       Runtime: java8
       MemorySize: 256
       ReservedConcurrentExecutions: 5
@@ -122,7 +122,6 @@ Resources:
         Variables:
           domain: !Ref DomainName
           dynamoDBTable: !Ref DynamoDBTableName
-          dynamoDBEndPoint: 'dynamodb.us-east-1.amazonaws.com'
           ttlInMin: 60
 
   LambdaResourcePermission:
@@ -162,5 +161,5 @@ Resources:
         WriteCapacityUnits: '5'
       TableName: !Ref DynamoDBTableName
       TimeToLiveSpecification:
-        AttributeName: 'ttlInMin'
+        AttributeName: 'ttl'
         Enabled: True

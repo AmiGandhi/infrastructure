@@ -146,6 +146,10 @@ Parameters:
     Description: DNS hosted zone
     Type: String
 
+  DueBillSNSTopicName:
+    Description: Name of the SNS Topic
+    Type: String
+
   DueBillSQSQueueName:
     Description: Name of the SQS Queue
     Type: String
@@ -366,6 +370,14 @@ Resources:
                 - Fn::GetAtt:
                   - RDSInstance
                   - Endpoint.Address
+                - " -Dsqs.queue.name="
+                - Fn::Join:
+                  - ''
+                  - - Ref: DueBillSQSQueueName
+                - " -Daws.topic.name="
+                - Fn::Join:
+                  - ''
+                  - - Ref: DueBillSNSTopicName
                 - '''" >> /opt/tomcat/bin/setenv.sh'
             - sudo systemctl restart tomcat.service
 
@@ -534,27 +546,13 @@ Resources:
   DueBillSNSTopic:
     Type: AWS::SNS::Topic
     Properties:
-      DisplayName:
-        Fn::Join:
-          - '_'
-          - - Ref: AWS::StackName
-            - due_bills
-      TopicName:
-        Fn::Join:
-          - '_'
-          - - Ref: AWS::StackName
-            - due_bills
+      DisplayName: !Ref DueBillSNSTopicName
+      TopicName: !Ref DueBillSNSTopicName
 
   DueBillSQSQueue:
     Type: AWS::SQS::Queue
-    Properties: 
-      QueueName:
-        Fn::Join:
-          - '-'
-          - - Ref: AWS::StackName
-            - SQSQueue.fifo
-      FifoQueue: True
-      ContentBasedDeduplication: True
+    Properties:
+      QueueName: !Ref DueBillSQSQueueName
 
   S3Bucket:
     Type: AWS::S3::Bucket

@@ -26,12 +26,12 @@
     },
     {
       "ParameterKey": "CodeDeployBucket",
-      "ParameterValue": "codedeploy.amigandhi.me",
+      "ParameterValue": "codedeployprod.amigandhi.me",
       "UsePreviousValue": true
     },
     {
       "ParameterKey": "DomainName",
-      "ParameterValue": "dev.amigandhi.me",
+      "ParameterValue": "prod.amigandhi.me",
       "UsePreviousValue": true
     },
     {
