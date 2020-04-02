@@ -166,7 +166,7 @@
     },
     {
       "ParameterKey": "QueueVisibilityInSec",
-      "ParameterValue": "3600",
+      "ParameterValue": "60",
       "UsePreviousValue": true
     },
     {
