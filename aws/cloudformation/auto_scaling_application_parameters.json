@@ -255,6 +255,11 @@
       "UsePreviousValue": true
     },
     {
+      "ParameterKey": "S3Key",
+      "ParameterValue": "DueBills.jar",
+      "UsePreviousValue": true
+    },
+    {
       "ParameterKey": "DynamoDBTableName",
       "ParameterValue": "csye6225-Dynamodb-table",
       "UsePreviousValue": true
