@@ -154,6 +154,14 @@ Parameters:
     Description: Name of the SQS Queue
     Type: String
 
+  QueueVisibilityInSec:
+    Description: Visibility period of the SQS Queue
+    Type: String 
+
+  ReceiveMessageWaitTimeSeconds:
+    Description: Wait time period of the SQS Queue
+    Type: String  
+
   WebAppEC2S3PolicyName:
     Description: Policy name
     Type: String
@@ -553,6 +561,8 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Ref DueBillSQSQueueName
+      VisibilityTimeout: !Ref QueueVisibilityInSec
+      ReceiveMessageWaitTimeSeconds: !Ref ReceiveMessageWaitTimeSeconds
 
   S3Bucket:
     Type: AWS::S3::Bucket

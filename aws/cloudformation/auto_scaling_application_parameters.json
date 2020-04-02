@@ -165,6 +165,16 @@
       "UsePreviousValue": true
     },
     {
+      "ParameterKey": "QueueVisibilityInSec",
+      "ParameterValue": "3600",
+      "UsePreviousValue": true
+    },
+    {
+      "ParameterKey": "ReceiveMessageWaitTimeSeconds",
+      "ParameterValue": "0",
+      "UsePreviousValue": true
+    },
+    {
       "ParameterKey": "CodeDeployEC2S3PolicyName",
       "ParameterValue": "CodeDeploy-EC2-S3",
       "UsePreviousValue": true
