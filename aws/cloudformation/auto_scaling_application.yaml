@@ -564,6 +564,54 @@ Resources:
       VisibilityTimeout: !Ref QueueVisibilityInSec
       ReceiveMessageWaitTimeSeconds: !Ref ReceiveMessageWaitTimeSeconds
 
+  SNStopicpolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2008-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: "*"
+            Action:
+              - SNS:Publish
+              - SNS:DeleteTopic
+              - SNS:ListSubscriptionsByTopic
+              - SNS:GetTopicAttributes
+              - SNS:Receive
+              - SNS:AddPermission
+              - SNS:Subscribe
+            Resource:
+              Ref: DueBillSNSTopic
+            Condition:
+              StringEquals:
+                AWS:SourceOwner:
+                  Ref: AWS::AccountId
+      Topics:
+      - Ref: DueBillSNSTopic
+
+  SnsEc2Policy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: sns-ec2-policy
+      Description: Policy for ec2 to access sns
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - sns:Publish
+              - sns:CreateTopic
+            Effect: Allow
+            Resource:
+              Fn::Join:
+              - ''
+              - - 'arn:aws:sns:'
+                - Ref: AWS::Region
+                - ":"
+                - Ref: AWS::AccountId
+                - ":"
+                - Ref: DueBillSNSTopicName
+
   S3Bucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Delete
@@ -641,6 +689,8 @@ Resources:
           - Effect: 'Allow'
             Action:
               - 's3:PutObject'
+              - s3:ListBucket
+              - s3:Get*
             Resource:
               - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket]]
               - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket, '/*']]
@@ -746,7 +796,11 @@ Resources:
           Action:
           - sts:AssumeRole
       ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+        - !Ref CodeDeployEC2S3Policy
+        - !Ref SnsEc2Policy
+        - "arn:aws:iam::aws:policy/AmazonSQSFullAccess",
+        - "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy",
+        - "arn:aws:iam::aws:policy/CloudWatchAgentAdminPolicy"
 
   CodeDeployServiceRole:
     Type: AWS::IAM::Role
