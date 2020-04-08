@@ -1,5 +1,10 @@
 [
     {
+      "ParameterKey": "CertificateArn",
+      "ParameterValue": "arn:aws:acm:us-east-1:952650301699:certificate/836a715f-a95c-4e42-a3e5-50ce0a96be12",
+      "UsePreviousValue": true
+    },
+    {
       "ParameterKey": "Networkstack",
       "ParameterValue": "networkstack",
       "UsePreviousValue": true
@@ -26,7 +31,7 @@
     },
     {
       "ParameterKey": "AmiId",
-      "ParameterValue": "ami-0de92c37939a9167e",
+      "ParameterValue": "ami-02f0ef1ffedbf8e43",
       "UsePreviousValue": true
     },
     {
@@ -245,23 +250,18 @@
       "UsePreviousValue": true
     },
     {
-      "ParameterKey": "CodeDeployBucket",
-      "ParameterValue": "codedeployprod.amigandhi.me",
-      "UsePreviousValue": true
-    },
-    {
       "ParameterKey": "DomainName",
       "ParameterValue": "prod.amigandhi.me",
       "UsePreviousValue": true
     },
     {
-      "ParameterKey": "S3Key",
-      "ParameterValue": "DueBills.jar",
+      "ParameterKey": "DynamoDBTableName",
+      "ParameterValue": "csye6225-Dynamodb-table",
       "UsePreviousValue": true
     },
     {
-      "ParameterKey": "DynamoDBTableName",
-      "ParameterValue": "csye6225-Dynamodb-table",
+      "ParameterKey": "S3Key",
+      "ParameterValue": "DueBills.jar",
       "UsePreviousValue": true
     }
 ]
