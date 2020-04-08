@@ -634,10 +634,10 @@ Resources:
         Statement:
           - Effect: "Allow"
             Action:
-              - s3:Get*
-              - s3:Delete*
-              - s3:Put*
-              - s3:List*
+              - "s3:Get*"
+              - "s3:Delete*"
+              - "s3:Put*"
+              - "s3:List*"
             Resource: !Join ['', ["arn:aws:s3:::", !Ref S3Bucket, "/*" ]]
       # Add a new IAM managed policy to an existing IAM role
       Roles:
@@ -650,16 +650,16 @@ Resources:
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
-          - Effect: Allow
+          - Effect: "Allow"
             Action:
-              - s3:GetAccountPublicAccessBlock
-              - s3:ListAllMyBuckets
-              - s3:ListJobs
+              - "s3:GetAccountPublicAccessBlock"
+              - "s3:ListAllMyBuckets"
+              - "s3:ListJobs"
             Resource: '*'
-          - Effect: Allow
+          - Effect: "Allow"
             Action:
-              - s3:Get*
-              - s3:List*
+              - "s3:Get*"
+              - "s3:List*"
             Resource:
               - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket]]
               - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket, '/*']]
@@ -671,11 +671,11 @@ Resources:
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
-          - Effect: Allow
+          - Effect: "Allow"
             Action:
-              - s3:PutObject
-              - s3:ListBucket
-              - s3:Get*
+              - "s3:PutObject"
+              - "s3:ListBucket"
+              - "s3:Get*"
             Resource:
               - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket]]
               - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket, '/*']]
@@ -728,7 +728,7 @@ Resources:
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
-        - Effect: Allow
+        - Effect: "Allow"
           Action:
           - ec2:AttachVolume
           - ec2:AuthorizeSecurityGroupIngress
@@ -774,7 +774,7 @@ Resources:
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
-        - Effect: Allow
+        - Effect: "Allow"
           Principal:
             Service:
             - ec2.amazonaws.com
@@ -793,7 +793,7 @@ Resources:
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
-          - Effect: Allow
+          - Effect: "Allow"
             Principal:
               Service:
                 - codedeploy.amazonaws.com
@@ -861,7 +861,7 @@ Resources:
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
-          - Effect: Allow
+          - Effect: "Allow"
             Action:
               - sqs:*
             Resource:
@@ -890,7 +890,7 @@ Resources:
       PolicyDocument:
         Version: '2008-10-17'
         Statement:
-          - Effect: Allow
+          - Effect: "Allow"
             Principal:
               AWS: "*"
             Action:
@@ -921,7 +921,7 @@ Resources:
           - Action:
               - sns:Publish
               - sns:CreateTopic
-            Effect: Allow
+            Effect: "Allow"
             Resource:
               Fn::Join:
                 - ''
@@ -951,7 +951,7 @@ Resources:
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
-          - Effect: Allow
+          - Effect: "Allow"
             Principal:
               Service: lambda.amazonaws.com
             Action: sts:AssumeRole
@@ -997,7 +997,7 @@ Resources:
               - logs:CreateLogGroup
               - logs:CreateLogStream
               - logs:PutLogEvents
-            Effect: Allow
+            Effect: "Allow"
             Resource: arn:aws:logs:*:*:*
 
   # LambdaSESPolicy:
