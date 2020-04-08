@@ -1,5 +1,10 @@
 [
     {
+      "ParameterKey": "CertificateArn",
+      "ParameterValue": "arn:aws:acm:us-east-1:952650301699:certificate/836a715f-a95c-4e42-a3e5-50ce0a96be12",
+      "UsePreviousValue": true
+    },
+    {
       "ParameterKey": "Networkstack",
       "ParameterValue": "networkstack",
       "UsePreviousValue": true

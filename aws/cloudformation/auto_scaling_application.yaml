@@ -1,7 +1,11 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Set up auto scaling application and serverless resources - CSYE 6225 Spring 2020
+Description: Set up auto scaling and serverless resources - CSYE 6225 Spring 2020
 
 Parameters:
+
+  CertificateArn:
+    Description: Certificate for SSL
+    Type: String
 
   Networkstack:
     Description: Network stack name
@@ -264,6 +268,11 @@ Resources:
           FromPort: 80
           ToPort: 80
           IpProtocol: tcp
+        - CidrIp: 0.0.0.0/0
+          Description: To allow world for port 443
+          FromPort: 443
+          ToPort: 443
+          IpProtocol: tcp
       Tags:
         - Key: Name
           Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "ELBSecurityGroup" ]]
@@ -278,10 +287,20 @@ Resources:
       GroupName: !Ref AppGroupName
       SecurityGroupIngress:
         - SourceSecurityGroupId: !Ref ELBSecurityGroup
-          Description: Load balancer Security Group added
+          Description: Allowing load balancer to access port 8080
           FromPort: 8080
           ToPort: 8080
           IpProtocol: tcp
+        # - SourceSecurityGroupId: !Ref ELBSecurityGroup
+        #   Description: Allowing port 22
+        #   FromPort: 22
+        #   ToPort: 22
+        #   IpProtocol: tcp
+        - IpProtocol: tcp
+          Description: Allowing world for port 22
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0          
       Tags:
         - Key: Name
           Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "SecurityGroupApp" ]]
@@ -327,6 +346,8 @@ Resources:
       DBName: !Ref DBName
       DBInstanceClass: !Ref DBInstanceClass
       AllocatedStorage: !Ref DBAllocatedStorage
+      StorageEncrypted: 'true'
+      # DBParameterGroupName: !Ref RDSDBParameterGroup
       Engine: !Ref Engine
       EngineVersion: !Ref EngineVersion
       MultiAZ: !Ref MultiAZ
@@ -339,6 +360,17 @@ Resources:
       Tags:
         - Key: Name
           Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "RDSInstance" ]]
+
+  # RDSDBParameterGroup: 
+  #   Properties: 
+  #     Type: AWS::RDS::DBParameterGroup
+  #     Description: Parameter to enable SSL in AWS RDS
+  #     Family: postgres11
+  #     Parameters: 
+  #       rds.force_ssl: 1
+  #     Tags:
+  #       - Key: Name
+  #         Value: rds-parameter-group-ssl
   
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -410,6 +442,8 @@ Resources:
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
+      # DependsOn:
+      #   - ELBListener
       AutoScalingGroupName: !Ref AutoScalingGroupName
       Cooldown: !Ref AutoScalingCooldownPeriod
       LaunchConfigurationName: !Ref AutoScalingLaunchConfig
@@ -472,32 +506,32 @@ Resources:
         - Key: Name
           Value: !Ref ELBLaunchConfigName
 
-  # ELBListener:
-  #   Type: AWS::ElasticLoadBalancingV2::Listener
-  #   Properties:
-  #     Certificates:
-  #       - CertificateArn: !Ref CertificateArn
-  #     DefaultActions:
-  #       - Type: forward
-  #         TargetGroupArn: !Ref ELBTargetGroup
-  #     LoadBalancerArn: !Ref ElasticLoadBalancer
-  #     Port: 443
-  #     Protocol: HTTPS
-
-  HTTPListener:
+  ELBListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
+      Certificates:
+        - CertificateArn: !Ref CertificateArn
       DefaultActions:
         - Type: forward
           TargetGroupArn: !Ref ELBTargetGroup
-        # - Type: redirect
-        #   RedirectConfig:
-        #     Protocol: HTTPS
-        #     Port: 443
-        #     StatusCode: HTTP_301
       LoadBalancerArn: !Ref ElasticLoadBalancer
-      Port: 80
-      Protocol: HTTP
+      Port: 443
+      Protocol: HTTPS
+
+  # HTTPListener:
+  #   Type: AWS::ElasticLoadBalancingV2::Listener
+  #   Properties:
+  #     DefaultActions:
+  #       # - Type: forward
+  #       #   TargetGroupArn: !Ref ELBTargetGroup
+  #       - Type: redirect
+  #         RedirectConfig:
+  #           Protocol: HTTPS
+  #           Port: 443
+  #           StatusCode: HTTP_301
+  #     LoadBalancerArn: !Ref ElasticLoadBalancer
+  #     Port: 80
+  #     Protocol: HTTP
 
   Route53Records:
     Type: AWS::Route53::RecordSet
@@ -569,14 +603,6 @@ Resources:
             Ref: AutoScalingGroup
       ComparisonOperator: LessThanThreshold
 
-
-  DueBillSQSQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Ref DueBillSQSQueueName
-      VisibilityTimeout: !Ref QueueVisibilityInSec
-      ReceiveMessageWaitTimeSeconds: !Ref ReceiveMessageWaitTimeSeconds
-
   S3Bucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Delete
@@ -608,10 +634,10 @@ Resources:
         Statement:
           - Effect: "Allow"
             Action:
-              - "s3:Get*"
-              - "s3:Delete*"
-              - "s3:Put*"
-              - "s3:List*"
+              - s3:Get*
+              - s3:Delete*
+              - s3:Put*
+              - s3:List*
             Resource: !Join ['', ["arn:aws:s3:::", !Ref S3Bucket, "/*" ]]
       # Add a new IAM managed policy to an existing IAM role
       Roles:
@@ -630,7 +656,7 @@ Resources:
               - s3:ListAllMyBuckets
               - s3:ListJobs
             Resource: '*'
-          - Effect: "Allow"
+          - Effect: Allow
             Action:
               - s3:Get*
               - s3:List*
@@ -645,9 +671,9 @@ Resources:
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
-          - Effect: 'Allow'
+          - Effect: Allow
             Action:
-              - 's3:PutObject'
+              - s3:PutObject
               - s3:ListBucket
               - s3:Get*
             Resource:
@@ -774,43 +800,9 @@ Resources:
             Action:
               - sts:AssumeRole
       ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"
+        - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole
       Path: "/"
       RoleName: !Ref CodeDeployServiceRoleName
-
-  SQSQueuePolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Action:
-              - sqs:*
-            Resource:
-              - Fn::GetAtt:
-                - DueBillSQSQueue
-                - Arn
-      PolicyName: CodeDeploy-EC2-SQSQueue
-      Roles:
-        - Ref: CodeDeployEC2ServiceRole
-
-  # CirlceCILambdaS3Policy:
-  #   Type: AWS::IAM::Policy
-  #   Properties:
-  #     PolicyName: !Ref CirlceCILambdaS3PolicyName
-  #     PolicyDocument:
-  #       Version: '2012-10-17'
-  #       Statement:
-  #         - Effect: 'Allow'
-  #           Action:
-  #             - 's3:PutObject'
-  #             - 's3:GetObject'
-  #           Resource:
-  #             - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket]]
-  #             - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket, '/*']]
-  #     Users:
-  #       - 'circleci'
 
   WebAppApplication:
     Type: AWS::CodeDeploy::Application
@@ -855,6 +847,31 @@ Resources:
 
 
 # Adding resources for serverless
+
+  DueBillSQSQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Ref DueBillSQSQueueName
+      VisibilityTimeout: !Ref QueueVisibilityInSec
+      ReceiveMessageWaitTimeSeconds: !Ref ReceiveMessageWaitTimeSeconds
+
+  SQSQueuePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - sqs:*
+            Resource:
+              - Fn::GetAtt:
+                - DueBillSQSQueue
+                - Arn
+      PolicyName: CodeDeploy-EC2-SQSQueue
+      Roles:
+        - Ref: CodeDeployEC2ServiceRole
+
   DueBillSNSTopic:
     Type: AWS::SNS::Topic
     Properties:
@@ -1036,6 +1053,23 @@ Resources:
       PolicyName: !Ref CircleCILambdaPolicyName
       Users:
         - circleci
+
+  # CirlceCILambdaS3Policy:
+  #   Type: AWS::IAM::Policy
+  #   Properties:
+  #     PolicyName: !Ref CirlceCILambdaS3PolicyName
+  #     PolicyDocument:
+  #       Version: '2012-10-17'
+  #       Statement:
+  #         - Effect: 'Allow'
+  #           Action:
+  #             - 's3:PutObject'
+  #             - 's3:GetObject'
+  #           Resource:
+  #             - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket]]
+  #             - !Join ['', ['arn:aws:s3:::', !Ref CodeDeployBucket, '/*']]
+  #     Users:
+  #       - 'circleci'
 
   DueBillLambdaFunction:
     Type: AWS::Lambda::Function
