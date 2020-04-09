@@ -263,11 +263,11 @@ Resources:
       GroupName: !Ref ELBGroupName
       GroupDescription: Allow http traffic to webserver
       SecurityGroupIngress:
-        - CidrIp: 0.0.0.0/0
-          Description: To allow world for port 80
-          FromPort: 80
-          ToPort: 80
-          IpProtocol: tcp
+        # - CidrIp: 0.0.0.0/0
+        #   Description: To allow world for port 80
+        #   FromPort: 80
+        #   ToPort: 80
+        #   IpProtocol: tcp
         - CidrIp: 0.0.0.0/0
           Description: To allow world for port 443
           FromPort: 443
@@ -291,16 +291,11 @@ Resources:
           FromPort: 8080
           ToPort: 8080
           IpProtocol: tcp
-        # - SourceSecurityGroupId: !Ref ELBSecurityGroup
-        #   Description: Allowing port 22
+        # - CidrIp: 0.0.0.0/0
+        #   Description: Allowing world for port 22
         #   FromPort: 22
         #   ToPort: 22
         #   IpProtocol: tcp
-        - IpProtocol: tcp
-          Description: Allowing world for port 22
-          FromPort: 22
-          ToPort: 22
-          CidrIp: 0.0.0.0/0          
       Tags:
         - Key: Name
           Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "SecurityGroupApp" ]]
@@ -347,7 +342,7 @@ Resources:
       DBInstanceClass: !Ref DBInstanceClass
       AllocatedStorage: !Ref DBAllocatedStorage
       StorageEncrypted: 'true'
-      # DBParameterGroupName: !Ref RDSDBParameterGroup
+      DBParameterGroupName: !Ref RDSDBParameterGroup
       Engine: !Ref Engine
       EngineVersion: !Ref EngineVersion
       MultiAZ: !Ref MultiAZ
@@ -361,16 +356,16 @@ Resources:
         - Key: Name
           Value: !Join ['-', [!Ref "AWS::StackName", !Ref "AWS::Region", "RDSInstance" ]]
 
-  # RDSDBParameterGroup: 
-  #   Properties: 
-  #     Type: AWS::RDS::DBParameterGroup
-  #     Description: Parameter to enable SSL in AWS RDS
-  #     Family: postgres11
-  #     Parameters: 
-  #       rds.force_ssl: 1
-  #     Tags:
-  #       - Key: Name
-  #         Value: rds-parameter-group-ssl
+  RDSDBParameterGroup: 
+    Type: AWS::RDS::DBParameterGroup
+    Properties: 
+      Description: Parameter to enable SSL in AWS RDS
+      Family: postgres10
+      Parameters:
+        rds.force_ssl: '1'
+      Tags:
+        - Key: Name
+          Value: rds-parameter-group-ssl
   
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
